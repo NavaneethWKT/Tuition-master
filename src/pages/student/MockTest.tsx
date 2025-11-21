@@ -5,17 +5,17 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
-import { Label } from "../components/ui/label";
-import { Textarea } from "../components/ui/textarea";
-import { Checkbox } from "../components/ui/checkbox";
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
+import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
+import { Checkbox } from "../../components/ui/checkbox";
 import { ArrowLeft, Clock, CheckCircle2, AlertCircle } from "lucide-react";
-import { Progress } from "../components/ui/progress";
-import { Alert, AlertDescription } from "../components/ui/alert";
-import { useAuth } from "../contexts/AuthContext";
-import { PageHeader } from "../components/PageHeader";
+import { Progress } from "../../components/ui/progress";
+import { Alert, AlertDescription } from "../../components/ui/alert";
+import { useAuth } from "../../contexts/AuthContext";
+import { PageHeader } from "../../components/PageHeader";
 
 interface MockTestProps {
   isParentView?: boolean;

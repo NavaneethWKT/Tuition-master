@@ -3,17 +3,16 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { PdfProvider } from "./contexts/PdfContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
-import { StudentDashboard } from "./pages/StudentDashboard";
-import { ParentDashboard } from "./pages/ParentDashboard";
-import { TeacherDashboard } from "./pages/TeacherDashboard";
-import { SchoolAdminDashboard } from "./pages/SchoolAdminDashboard";
-import { AITutorChat } from "./pages/AITutorChat";
-import { ClassNotes } from "./pages/ClassNotes";
-import { MockTest } from "./pages/MockTest";
-import { Revision } from "./pages/Revision";
-import { UploadAnswer } from "./pages/UploadAnswer";
+import { LoginPage } from "./pages/auth/LoginPage";
+import { RegisterPage } from "./pages/auth/RegisterPage";
+import { StudentDashboard } from "./pages/student/StudentDashboard";
+import { ParentDashboard } from "./pages/parent/ParentDashboard";
+import { TeacherDashboard } from "./pages/teacher/TeacherDashboard";
+import { SchoolAdminDashboard } from "./pages/school-admin/SchoolAdminDashboard";
+import { AITutorChat } from "./pages/student/AITutorChat";
+import { ClassNotes } from "./pages/student/ClassNotes";
+import { MockTest } from "./pages/student/MockTest";
+import { Revision } from "./pages/student/Revision";
 
 export default function App() {
   return (
@@ -63,14 +62,6 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={["student"]}>
                   <Revision />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/upload-answer"
-              element={
-                <ProtectedRoute allowedRoles={["student"]}>
-                  <UploadAnswer />
                 </ProtectedRoute>
               }
             />

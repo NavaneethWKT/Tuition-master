@@ -5,9 +5,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import {
   FileText,
   Download,
@@ -22,10 +22,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select";
-import { usePdf } from "../contexts/PdfContext";
-import { useAuth } from "../contexts/AuthContext";
-import { PageHeader } from "../components/PageHeader";
+} from "../../components/ui/select";
+import { usePdf } from "../../contexts/PdfContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { PageHeader } from "../../components/PageHeader";
 
 export function ClassNotes() {
   const navigate = useNavigate();
