@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -80,6 +80,15 @@ export function LoginPage() {
       password: "",
     },
   });
+
+  // Clear form when switching tabs
+  useEffect(() => {
+    form.reset({
+      contact: "",
+      password: "",
+    });
+    setError(null);
+  }, [activeRole, form]);
 
   const handleLogin = async (values: LoginFormValues) => {
     setLoading(true);
