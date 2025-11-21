@@ -13,9 +13,10 @@ import { TeacherDashboard } from "./pages/teacher/TeacherDashboard";
 import { SchoolAdminDashboard } from "./pages/school-admin/SchoolAdminDashboard";
 import { AITutorChat } from "./pages/student/AITutorChat";
 import { ClassNotes } from "./pages/student/ClassNotes";
-import { MockTest } from "./pages/student/MockTest";
 import { Revision } from "./pages/student/Revision";
 import { TeacherClass } from "./pages/teacher/TeacherClass";
+import MockTest from "./pages/student/MockTest";
+import ParentMockTestPage from "./pages/parent/MockTestPage";
 
 export default function App() {
   return (
@@ -92,7 +93,7 @@ export default function App() {
                 path="/parent/mock-test"
                 element={
                   <ProtectedRoute allowedRoles={["parent"]}>
-                    <MockTest isParentView={true} />
+                    <ParentMockTestPage />
                   </ProtectedRoute>
                 }
               />
@@ -105,23 +106,23 @@ export default function App() {
                 }
               />
 
-            {/* Teacher Routes */}
-            <Route
-              path="/teacher/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <TeacherDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/teacher/class"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <TeacherClass />
-                </ProtectedRoute>
-              }
-            />
+              {/* Teacher Routes */}
+              <Route
+                path="/teacher/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <TeacherDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/teacher/class"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <TeacherClass />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Admin Routes */}
               <Route

@@ -108,7 +108,7 @@ export function Revision() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper">
       <PageHeader
         title="Revision Center"
         subtitle="Review your saved topics and generate AI summaries"
@@ -268,10 +268,6 @@ export function Revision() {
                       <CheckCircle2 className="w-5 h-5 text-green-600" />
                       AI-Generated Summary
                     </CardTitle>
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Star className="w-4 h-4" />
-                      Save to Revision
-                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>

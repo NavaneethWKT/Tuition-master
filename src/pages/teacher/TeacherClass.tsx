@@ -44,7 +44,7 @@ export function TeacherClass() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper">
       <DashboardHeader
         title="Tuition Master"
         subtitle="Teacher Portal"
@@ -66,7 +66,7 @@ export function TeacherClass() {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-semibold">Class Details - {id}</h1>
+          <h1 className="text-2xl font-semibold">Class Details</h1>
         </div>
 
         <Card className="shadow-sm">
