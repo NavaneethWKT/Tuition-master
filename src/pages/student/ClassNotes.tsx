@@ -160,7 +160,7 @@ export function ClassNotes() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper">
       <PageHeader
         title="Class Notes & Materials"
         subtitle={`Grade ${classInfo.grade} - Section ${classInfo.section} • Class Teacher: ${classInfo.classTeacher}`}

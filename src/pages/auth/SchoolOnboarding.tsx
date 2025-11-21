@@ -202,29 +202,7 @@ export function SchoolOnboarding() {
                         required
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="schoolType">School Type *</Label>
-                      <Select
-                        value={formData.schoolType}
-                        onValueChange={(value) =>
-                          handleChange("schoolType", value)
-                        }
-                      >
-                        <SelectTrigger id="schoolType">
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="public">Public</SelectItem>
-                          <SelectItem value="private">Private</SelectItem>
-                          <SelectItem value="international">
-                            International
-                          </SelectItem>
-                          <SelectItem value="semi-private">
-                            Semi-Private
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="establishmentYear">
                         Establishment Year *
@@ -262,39 +240,6 @@ export function SchoolOnboarding() {
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="schoolCategory">School Category</Label>
-                      <Select
-                        value={formData.schoolCategory}
-                        onValueChange={(value) =>
-                          handleChange("schoolCategory", value)
-                        }
-                      >
-                        <SelectTrigger id="schoolCategory">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="primary">Primary</SelectItem>
-                          <SelectItem value="secondary">Secondary</SelectItem>
-                          <SelectItem value="higher-secondary">
-                            Higher Secondary
-                          </SelectItem>
-                          <SelectItem value="all">All Levels</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="description">School Description</Label>
-                      <Textarea
-                        id="description"
-                        placeholder="Brief description about your school"
-                        value={formData.description}
-                        onChange={(e) =>
-                          handleChange("description", e.target.value)
-                        }
-                        rows={3}
-                      />
                     </div>
                   </div>
                 </div>
@@ -338,39 +283,13 @@ export function SchoolOnboarding() {
                             required
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="alternatePhone">
-                            Alternate Phone
-                          </Label>
-                          <Input
-                            id="alternatePhone"
-                            type="tel"
-                            placeholder="+91 98765 43211"
-                            value={formData.alternatePhone}
-                            onChange={(e) =>
-                              handleChange("alternatePhone", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="website">Website</Label>
-                          <Input
-                            id="website"
-                            type="url"
-                            placeholder="https://www.school.com"
-                            value={formData.website}
-                            onChange={(e) =>
-                              handleChange("website", e.target.value)
-                            }
-                          />
-                        </div>
                       </div>
                     </div>
                     <div>
                       <h4 className="text-md font-medium mb-4">Address</h4>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="addressLine1">Address Line 1 *</Label>
+                          <Label htmlFor="addressLine1">Address Line *</Label>
                           <Input
                             id="addressLine1"
                             placeholder="Street address"
@@ -379,17 +298,6 @@ export function SchoolOnboarding() {
                               handleChange("addressLine1", e.target.value)
                             }
                             required
-                          />
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="addressLine2">Address Line 2</Label>
-                          <Input
-                            id="addressLine2"
-                            placeholder="Apartment, suite, etc."
-                            value={formData.addressLine2}
-                            onChange={(e) =>
-                              handleChange("addressLine2", e.target.value)
-                            }
                           />
                         </div>
                         <div className="space-y-2">
@@ -425,18 +333,6 @@ export function SchoolOnboarding() {
                             value={formData.pincode}
                             onChange={(e) =>
                               handleChange("pincode", e.target.value)
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="country">Country *</Label>
-                          <Input
-                            id="country"
-                            placeholder="Enter country"
-                            value={formData.country}
-                            onChange={(e) =>
-                              handleChange("country", e.target.value)
                             }
                             required
                           />

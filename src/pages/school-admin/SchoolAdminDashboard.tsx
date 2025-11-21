@@ -46,7 +46,7 @@ export function SchoolAdminDashboard() {
   const { schoolData } = useSchool();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper">
       <DashboardHeader
         title="Tuition Master"
         subtitle="Admin Portal"

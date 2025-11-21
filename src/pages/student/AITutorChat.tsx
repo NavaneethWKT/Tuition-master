@@ -37,13 +37,6 @@ export function AITutorChat() {
   const [inputMessage, setInputMessage] = useState("");
   const [isChatAreaVisible, setIsChatAreaVisible] = useState(true);
 
-  const quickPrompts = [
-    "Explain chapter in Tamil",
-    "Create revision summary",
-    "Generate mock test",
-    "Solve this problem step by step",
-  ];
-
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
       const newUserMessage: Message = {
@@ -68,7 +61,7 @@ export function AITutorChat() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-paper flex flex-col">
       <PageHeader
         title="AI Tuition Master"
         subtitle="Your personal AI tutor"
@@ -126,7 +119,7 @@ export function AITutorChat() {
               pdfUrl
                 ? "flex-[0_0_65%]"
                 : "flex-1 container mx-auto px-6 max-w-4xl"
-            } flex flex-col min-w-0 transition-all duration-300 background-paper relative`}
+            } flex flex-col min-w-0 transition-all duration-300 bg-paper relative`}
           >
             <div
               className={`flex-1 flex flex-col ${

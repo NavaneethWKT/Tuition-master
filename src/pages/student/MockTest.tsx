@@ -114,7 +114,7 @@ export function MockTest({ isParentView = false }: MockTestProps) {
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper">
       <PageHeader
         title={isParentView ? "Mock Test Review" : "Mathematics Mock Test"}
         subtitle={
