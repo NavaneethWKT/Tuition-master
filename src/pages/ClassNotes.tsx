@@ -1,10 +1,14 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import {
-  ArrowLeft,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import {
   FileText,
   Download,
   Eye,
@@ -18,9 +22,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
+} from "../components/ui/select";
 import { usePdf } from "../contexts/PdfContext";
 import { useAuth } from "../contexts/AuthContext";
+import { PageHeader } from "../components/PageHeader";
 
 export function ClassNotes() {
   const navigate = useNavigate();
@@ -156,25 +161,12 @@ export function ClassNotes() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white border-b border-border sticky top-0 z-10">
-        <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/student/dashboard")}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h2 className="text-gray-800">Class Notes & Materials</h2>
-            <p className="text-sm text-muted-foreground">
-              Grade {classInfo.grade} - Section {classInfo.section} • Class
-              Teacher: {classInfo.classTeacher}
-            </p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title="Class Notes & Materials"
+        subtitle={`Grade ${classInfo.grade} - Section ${classInfo.section} • Class Teacher: ${classInfo.classTeacher}`}
+        showBackButton={true}
+        backRoute="/student/dashboard"
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-6xl space-y-6">

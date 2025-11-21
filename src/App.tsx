@@ -3,17 +3,17 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { PdfProvider } from "./contexts/PdfContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { LoginPage } from "./components/LoginPage";
-import { RegisterPage } from "./components/RegisterPage";
-import { StudentDashboard } from "./components/StudentDashboard";
-import { ParentDashboard } from "./components/ParentDashboard";
-import { TeacherDashboard } from "./components/TeacherDashboard";
-import { SchoolAdminDashboard } from "./components/SchoolAdminDashboard";
-import { AITutorChat } from "./components/AITutorChat";
-import { ClassNotes } from "./components/ClassNotes";
-import { MockTest } from "./components/MockTest";
-import { Revision } from "./components/Revision";
-import { UploadAnswer } from "./components/UploadAnswer";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { StudentDashboard } from "./pages/StudentDashboard";
+import { ParentDashboard } from "./pages/ParentDashboard";
+import { TeacherDashboard } from "./pages/TeacherDashboard";
+import { SchoolAdminDashboard } from "./pages/SchoolAdminDashboard";
+import { AITutorChat } from "./pages/AITutorChat";
+import { ClassNotes } from "./pages/ClassNotes";
+import { MockTest } from "./pages/MockTest";
+import { Revision } from "./pages/Revision";
+import { UploadAnswer } from "./pages/UploadAnswer";
 
 export default function App() {
   return (

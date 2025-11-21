@@ -1,11 +1,21 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
 import {
   BookOpen,
   Upload,
@@ -14,40 +24,22 @@ import {
   LogOut,
   PlusCircle,
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+import { DashboardHeader } from "../components/DashboardHeader";
+import { StatCard } from "../components/StatCard";
 
 export function TeacherDashboard() {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
   const [activeTab, setActiveTab] = useState("overview");
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white border-b border-border sticky top-0 z-10">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <span className="font-semibold text-foreground">
-                Tuition Master
-              </span>
-              <p className="text-xs text-muted-foreground">Teacher Portal</p>
-            </div>
+      <DashboardHeader
+        title="Tuition Master"
+        subtitle="Teacher Portal"
+        icon={
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+            <BookOpen className="w-6 h-6 text-white" />
           </div>
-          <Button variant="ghost" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </header>
+        }
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 space-y-6">
@@ -61,49 +53,27 @@ export function TeacherDashboard() {
 
         {/* Stats Cards */}
         <div className="grid md:grid-cols-4 gap-6">
-          <Card className="shadow-lg border-0">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Total Students
-                  </p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">156</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-0">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Classes</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">8</p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-0">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Tests Created</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">24</p>
-                </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            label="Total Students"
+            value={156}
+            icon={Users}
+            iconBg="bg-blue-100"
+            iconColor="text-blue-600"
+          />
+          <StatCard
+            label="Classes"
+            value={8}
+            icon={BookOpen}
+            iconBg="bg-green-100"
+            iconColor="text-green-600"
+          />
+          <StatCard
+            label="Tests Created"
+            value={24}
+            icon={FileText}
+            iconBg="bg-orange-100"
+            iconColor="text-orange-600"
+          />
         </div>
 
         {/* Main Tabs */}
