@@ -22,6 +22,11 @@ import {
   Upload,
   BookOpen,
   TrendingUp,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  GraduationCap,
 } from "lucide-react";
 import {
   Table,
@@ -33,9 +38,12 @@ import {
 } from "../../components/ui/table";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { StatCard } from "../../components/StatCard";
+import { useSchool } from "../../contexts/SchoolContext";
 
 export function SchoolAdminDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+  const { schoolData } = useSchool();
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,15 +60,23 @@ export function SchoolAdminDashboard() {
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 space-y-6">
         {/* Greeting */}
-        <div>
-          <h1 className="text-gray-800 mb-2">Admin Dashboard</h1>
+        <div className="w-3xl">
+          <h1 className="text-gray-800 mb-2">
+            Welcome back,{" "}
+            {schoolData?.adminName
+              ? schoolData.adminName.split(" ")[0]
+              : "Administrator"}
+            !
+          </h1>
           <p className="text-muted-foreground">
-            Manage your school, teachers, classes, and monitor performance
+            Manage your school operations, oversee teachers and classes, track
+            student progress, and make data-driven decisions to enhance
+            educational outcomes.
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           <StatCard
             label="Total Students"
             value="1,248"
@@ -100,7 +116,7 @@ export function SchoolAdminDashboard() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="teachers">Teachers</TabsTrigger>
             <TabsTrigger value="classes">Classes</TabsTrigger>
@@ -118,31 +134,217 @@ export function SchoolAdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">School Name</p>
-                    <p className="font-medium">
-                      Greenwood International School
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Address</p>
-                    <p className="font-medium">
-                      123 Education Street, Chennai, Tamil Nadu
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Contact</p>
-                    <p className="font-medium">+91 98765 43210</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">admin@greenwood.edu</p>
-                  </div>
-                  <Button variant="outline" className="w-full">
-                    Edit Profile
-                  </Button>
+                  {schoolData ? (
+                    <>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
+                          <GraduationCap className="w-4 h-4" />
+                          School Name
+                        </p>
+                        <p className="text-base">{schoolData.schoolName}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
+                          <MapPin className="w-4 h-4" />
+                          Address
+                        </p>
+                        <p className="text-sm">
+                          {schoolData.addressLine1}
+                          {schoolData.addressLine2 &&
+                            `, ${schoolData.addressLine2}`}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {schoolData.city}, {schoolData.state} -{" "}
+                          {schoolData.pincode}
+                        </p>
+                        {schoolData.country && (
+                          <p className="text-sm text-muted-foreground">
+                            {schoolData.country}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
+                            <Phone className="w-4 h-4" />
+                            Phone
+                          </p>
+                          <p className="text-sm">{schoolData.phone}</p>
+                          {schoolData.alternatePhone && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Alt: {schoolData.alternatePhone}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
+                            <Mail className="w-4 h-4" />
+                            Email
+                          </p>
+                          <p className="text-sm break-all">
+                            {schoolData.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      {schoolData.website && (
+                        <div>
+                          <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
+                            <Globe className="w-4 h-4" />
+                            Website
+                          </p>
+                          <a
+                            href={schoolData.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline text-sm"
+                          >
+                            {schoolData.website}
+                          </a>
+                        </div>
+                      )}
+
+                      <div className="pt-4 border-t space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-semibold text-foreground">
+                            School Type:
+                          </span>
+                          <span className="capitalize">
+                            {schoolData.schoolType || "N/A"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="font-semibold text-foreground">
+                            Board:
+                          </span>
+                          <span className="uppercase">
+                            {schoolData.boardAffiliation || "N/A"}
+                          </span>
+                        </div>
+                        {schoolData.establishmentYear && (
+                          <div className="flex justify-between text-sm">
+                            <span className="font-semibold text-foreground">
+                              Established:
+                            </span>
+                            <span>{schoolData.establishmentYear}</span>
+                          </div>
+                        )}
+                        {schoolData.schoolCategory && (
+                          <div className="flex justify-between text-sm">
+                            <span className="font-semibold text-foreground">
+                              Category:
+                            </span>
+                            <span className="capitalize">
+                              {schoolData.schoolCategory.replace("-", " ")}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground mb-4">
+                        No school information available
+                      </p>
+                      <Button
+                        onClick={() => navigate("/school-onboarding")}
+                        className="w-full"
+                      >
+                        Complete School Onboarding
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
+
+              {/* Additional Information */}
+              {schoolData && (
+                <Card className="shadow-lg border-0">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="w-5 h-5" />
+                      Administrative Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {schoolData.principalName && (
+                      <div>
+                        <p className="text-sm font-semibold text-foreground mb-1">
+                          Principal
+                        </p>
+                        <p className="text-sm">{schoolData.principalName}</p>
+                        {schoolData.principalEmail && (
+                          <p className="text-sm text-muted-foreground">
+                            {schoolData.principalEmail}
+                          </p>
+                        )}
+                        {schoolData.principalPhone && (
+                          <p className="text-sm text-muted-foreground">
+                            {schoolData.principalPhone}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {schoolData.adminName && (
+                      <div>
+                        <p className="text-sm font-semibold text-foreground mb-1">
+                          Administrator
+                        </p>
+                        <p className="text-sm">{schoolData.adminName}</p>
+                        {schoolData.adminEmail && (
+                          <p className="text-sm text-muted-foreground">
+                            {schoolData.adminEmail}
+                          </p>
+                        )}
+                        {schoolData.adminPhone && (
+                          <p className="text-sm text-muted-foreground">
+                            {schoolData.adminPhone}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {schoolData.description && (
+                      <div className="pt-4 border-t">
+                        <p className="text-sm font-semibold text-foreground mb-2">
+                          Description
+                        </p>
+                        <p className="text-sm">{schoolData.description}</p>
+                      </div>
+                    )}
+
+                    {schoolData.vision && (
+                      <div>
+                        <p className="text-sm font-semibold text-foreground mb-2">
+                          Vision
+                        </p>
+                        <p className="text-sm italic">{schoolData.vision}</p>
+                      </div>
+                    )}
+
+                    {schoolData.mission && (
+                      <div>
+                        <p className="text-sm font-semibold text-foreground mb-2">
+                          Mission
+                        </p>
+                        <p className="text-sm italic">{schoolData.mission}</p>
+                      </div>
+                    )}
+
+                    {schoolData.achievements && (
+                      <div>
+                        <p className="text-sm font-semibold text-foreground mb-2">
+                          Achievements
+                        </p>
+                        <p className="text-sm">{schoolData.achievements}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
@@ -152,10 +354,6 @@ export function SchoolAdminDashboard() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Teachers Management</CardTitle>
-                  <Button className="gap-2">
-                    <UserPlus className="w-4 h-4" />
-                    Add Teacher
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -273,10 +471,6 @@ export function SchoolAdminDashboard() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Classes & Sections</CardTitle>
-                  <Button className="gap-2">
-                    <BookOpen className="w-4 h-4" />
-                    Add Class
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
