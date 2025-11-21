@@ -9,48 +9,47 @@ export function StudentDashboard() {
 
   const actionCards = [
     {
-      title: "AI Tuition Master",
-      description: "Get personalized AI tutoring",
-      icon: Bot,
-      color: "bg-purple-500",
-      route: "/student/ai-chat",
-    },
-    {
-      title: "Class Notes",
-      description: "View materials from teachers",
+      title: "AI Tuition Master: Smart Notes",
+      description:
+        "Learn faster with teacher notes enhanced by AI explanations",
       icon: BookOpen,
-      color: "bg-indigo-500",
+      color: "bg-indigo-600",
       route: "/student/class-notes",
     },
     {
       title: "Revision",
-      description: "Review your saved topics",
+      description: "Review and strengthen your weak areas",
       icon: RotateCcw,
-      color: "bg-green-500",
+      color: "bg-emerald-600",
       route: "/student/revision",
     },
     {
       title: "Mock Test Generator",
-      description: "Practice with AI-generated tests",
+      description: "Practice with personalized AI-generated tests",
       icon: FlaskConical,
-      color: "bg-orange-500",
+      color: "bg-orange-600",
       route: "/student/mock-test",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper text-gray-900 flex flex-col">
       <DashboardHeader />
-      <main className="container mx-auto px-6 py-8 space-y-8">
-        <div>
-          <h1 className="text-gray-800 mb-2">Hello, Arjun 👋</h1>
-          <p className="text-muted-foreground">
-            Welcome back! Ready to learn today?
+
+      <div className="flex flex-col flex-1 max-w-7xl w-full mx-auto px-6 pt-10 pb-4 space-y-20">
+        {/* Hero div */}
+        <div className="p-6 rounded-3xl bg-slate-100 shadow-sm border border-slate-200 flex flex-col">
+          <h1 className="text-2xl font-bold">Hello Arjun 👋</h1>
+          <p className="text-gray-600 mt-1">
+            Ready to make progress today? Pick something below to get started.
           </p>
         </div>
-        <div>
-          <h2 className="mb-6 text-gray-800">Quick Actions</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+
+        {/* Quick Actions */}
+        <div className="flex flex-col">
+          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {actionCards.map((card) => (
               <ActionCard
                 key={card.route}
@@ -63,7 +62,15 @@ export function StudentDashboard() {
             ))}
           </div>
         </div>
-      </main>
+
+        {/* Motivation Banner */}
+        <div className="p-6 rounded-2xl bg-slate-100 text-center border border-slate-200 shadow-sm flex flex-col items-center justify-center">
+          <h3 className="text-lg font-medium">Stay consistent, Arjun! 🚀</h3>
+          <p className="text-gray-600 mt-1">
+            Even 1% growth every day leads to massive success.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
