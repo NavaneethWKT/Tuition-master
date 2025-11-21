@@ -5,8 +5,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Button } from "../components/ui/button";
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import {
   User,
   FileText,
@@ -14,9 +14,9 @@ import {
   TrendingUp,
   FlaskConical,
 } from "lucide-react";
-import { DashboardHeader } from "../components/DashboardHeader";
-import { ActionCard } from "../components/ActionCard";
-import { StatCard } from "../components/StatCard";
+import { DashboardHeader } from "../../components/DashboardHeader";
+import { ActionCard } from "../../components/ActionCard";
+import { StatCard } from "../../components/StatCard";
 
 export function ParentDashboard() {
   const navigate = useNavigate();

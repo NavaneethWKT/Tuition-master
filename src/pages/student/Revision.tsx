@@ -5,12 +5,12 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Button } from "../components/ui/button";
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import { Upload, FileText, Sparkles, CheckCircle2, Star } from "lucide-react";
-import { ScrollArea } from "../components/ui/scroll-area";
-import { Progress } from "../components/ui/progress";
-import { PageHeader } from "../components/PageHeader";
+import { ScrollArea } from "../../components/ui/scroll-area";
+import { Progress } from "../../components/ui/progress";
+import { PageHeader } from "../../components/PageHeader";
 
 export function Revision() {
   const navigate = useNavigate();

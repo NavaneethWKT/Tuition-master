@@ -5,16 +5,16 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "../components/ui/tabs";
+} from "../../components/ui/tabs";
 import {
   School,
   Users,
@@ -30,9 +30,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../components/ui/table";
-import { DashboardHeader } from "../components/DashboardHeader";
-import { StatCard } from "../components/StatCard";
+} from "../../components/ui/table";
+import { DashboardHeader } from "../../components/DashboardHeader";
+import { StatCard } from "../../components/StatCard";
 
 export function SchoolAdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
