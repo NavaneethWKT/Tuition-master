@@ -36,7 +36,7 @@ export function PageHeader({
           ? "/parent/dashboard"
           : userRole === "teacher"
           ? "/teacher/dashboard"
-          : userRole === "admin"
+          : userRole === "school"
           ? "/admin/dashboard"
           : "/login";
       navigate(defaultRoute);
