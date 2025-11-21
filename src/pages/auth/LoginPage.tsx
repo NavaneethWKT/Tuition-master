@@ -1,8 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../../components/ui/form";
 import {
   Tabs,
   TabsContent,
@@ -16,25 +26,62 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import apiClient from "../../services/apiClient";
+
+// Validation schema
+const loginSchema = z.object({
+  contact: z
+    .string()
+    .min(1, "Contact number is required")
+    .min(10, "Contact number must be at least 10 digits"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters long"),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { setUserRole } = useAuth();
   const [activeRole, setActiveRole] = useState("student");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = () => {
-    if (phone && password) {
-      const role = activeRole as "student" | "parent" | "teacher" | "admin";
-      apiClient.login({
-        phone,
-        password,
-        role,
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      contact: "",
+      password: "",
+    },
+  });
+
+  const handleLogin = async (values: LoginFormValues) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const role = activeRole as "student" | "parent" | "teacher" | "school";
+
+      const response = await apiClient.login(role, {
+        phone: values.contact,
+        password: values.password,
       });
+
+      // Store token if provided in response
+      if (response.token) {
+        localStorage.setItem("authToken", response.token);
+      }
+
+      // Store user data if provided
+      if (response.user) {
+        localStorage.setItem("userData", JSON.stringify(response.user));
+      }
+
       setUserRole(role);
 
       // Navigate to appropriate dashboard
@@ -44,9 +91,14 @@ export function LoginPage() {
         navigate("/parent/dashboard");
       } else if (role === "teacher") {
         navigate("/teacher/dashboard");
-      } else if (role === "admin") {
+      } else if (role === "school") {
         navigate("/admin/dashboard");
       }
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError("Login failed. Please check your credentials and try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,49 +153,120 @@ export function LoginPage() {
                 <TabsTrigger value="teacher" className="text-sm font-medium">
                   Teacher
                 </TabsTrigger>
-                <TabsTrigger value="admin" className="text-sm font-medium">
+                <TabsTrigger value="school" className="text-sm font-medium">
                   School Admin
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value={activeRole} className="space-y-6 mt-2">
-                <div className="space-y-2">
-                  <Label>Phone Number</Label>
-                  <Input
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="h-12 text-lg"
-                  />
-                </div>
+                {error && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
 
-                <div className="space-y-2">
-                  <Label>Password</Label>
-                  <Input
-                    type="password"
-                    placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-12 text-lg"
-                  />
-                </div>
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(handleLogin)}
+                    className="space-y-6"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="contact"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contact</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="tel"
+                              placeholder="Enter your Contact Number"
+                              className="h-12 text-lg"
+                              disabled={loading}
+                              {...field}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setError(null);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <div className="flex gap-3 pt-2">
-                  <Button onClick={handleLogin} className="flex-1 h-12 text-lg">
-                    Login
-                  </Button>
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Enter Password"
+                                className="h-12 text-lg pr-12"
+                                disabled={loading}
+                                {...field}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setError(null);
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none disabled:opacity-50"
+                                disabled={loading}
+                                aria-label={
+                                  showPassword
+                                    ? "Hide password"
+                                    : "Show password"
+                                }
+                              >
+                                {showPassword ? (
+                                  <Eye className="w-5 h-5" />
+                                ) : (
+                                  <EyeOff className="w-5 h-5" />
+                                )}
+                              </button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  {activeRole === "admin" && (
-                    <Button
-                      variant="outline"
-                      className="flex-1 h-12"
-                      onClick={() => navigate("/school-onboarding")}
-                    >
-                      Register School
-                    </Button>
-                  )}
-                </div>
+                    <div className="flex gap-3 pt-2">
+                      <Button
+                        type="submit"
+                        className="flex-1 h-12 text-lg"
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Logging in...
+                          </>
+                        ) : (
+                          "Login"
+                        )}
+                      </Button>
+
+                      {activeRole === "school" && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1 h-12"
+                          onClick={() => navigate("/school-onboarding")}
+                          disabled={loading}
+                        >
+                          Register School
+                        </Button>
+                      )}
+                    </div>
+                  </form>
+                </Form>
               </TabsContent>
             </Tabs>
           </CardContent>

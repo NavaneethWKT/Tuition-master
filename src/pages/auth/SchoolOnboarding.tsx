@@ -80,7 +80,7 @@ export function SchoolOnboarding() {
       };
       setSchoolData(schoolDataToSave);
       // After successful registration, log them in as admin
-      setUserRole("admin");
+      setUserRole("school");
       navigate("/admin/dashboard");
     }
   };

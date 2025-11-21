@@ -105,29 +105,29 @@ export default function App() {
                 }
               />
 
-            {/* Teacher Routes */}
-            <Route
-              path="/teacher/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <TeacherDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/teacher/class"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <TeacherClass />
-                </ProtectedRoute>
-              }
-            />
+              {/* Teacher Routes */}
+              <Route
+                path="/teacher/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <TeacherDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/teacher/class"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <TeacherClass />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Admin Routes */}
               <Route
                 path="/admin/dashboard"
                 element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProtectedRoute allowedRoles={["school"]}>
                     <SchoolAdminDashboard />
                   </ProtectedRoute>
                 }
