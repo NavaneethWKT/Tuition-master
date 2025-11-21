@@ -1,26 +1,20 @@
-import { React } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
 import {
-  BookOpen,
-  LogOut,
   User,
   FileText,
   BarChart3,
   TrendingUp,
   FlaskConical,
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+import { DashboardHeader } from "../components/DashboardHeader";
+import { ActionCard } from "../components/ActionCard";
+import { StatCard } from "../components/StatCard";
 
 export function ParentDashboard() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
   // Mock student data
   const studentInfo = {
     name: "Arjun Sharma",
@@ -63,23 +57,7 @@ export function ParentDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white border-b border-border sticky top-0 z-10">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-semibold text-foreground">
-              Tuition Master
-            </span>
-          </div>
-          <Button variant="ghost" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </header>
+      <DashboardHeader />
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 space-y-8">
@@ -121,23 +99,13 @@ export function ParentDashboard() {
         <div>
           <h2 className="mb-6 text-gray-800">Quick Actions</h2>
           <div className="grid md:grid-cols-3 gap-6">
-            {/* Mock Test Generator Card - Same as StudentDashboard */}
-            <Card
-              className="shadow-lg border-0 hover:shadow-xl transition-shadow cursor-pointer group"
+            <ActionCard
+              title="Mock Test Generator"
+              description="Practice with AI-generated tests"
+              icon={FlaskConical}
+              color="bg-orange-500"
               onClick={() => navigate("/parent/mock-test")}
-            >
-              <CardContent className="pt-6 space-y-4">
-                <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <FlaskConical className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h3 className="mb-1">Mock Test Generator</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Practice with AI-generated tests
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            />
 
             {/* Mock Test Review Card */}
             <Card
@@ -224,55 +192,27 @@ export function ParentDashboard() {
 
         {/* Overall Statistics */}
         <div className="grid md:grid-cols-4 gap-6">
-          <Card className="shadow-lg border-0">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Average Score</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">
-                    {overallStats.averageScore}%
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-0">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Tests Completed
-                  </p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">
-                    {overallStats.testsCompleted}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-0">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Improvement</p>
-                  <p className="text-3xl font-bold text-green-600 mt-1">
-                    {overallStats.improvement}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            label="Average Score"
+            value={`${overallStats.averageScore}%`}
+            icon={TrendingUp}
+            iconBg="bg-blue-100"
+            iconColor="text-blue-600"
+          />
+          <StatCard
+            label="Tests Completed"
+            value={overallStats.testsCompleted}
+            icon={FileText}
+            iconBg="bg-green-100"
+            iconColor="text-green-600"
+          />
+          <StatCard
+            label="Improvement"
+            value={overallStats.improvement}
+            icon={TrendingUp}
+            iconBg="bg-orange-100"
+            iconColor="text-orange-600"
+          />
 
           <Card className="shadow-lg border-0">
             <CardContent className="pt-6">

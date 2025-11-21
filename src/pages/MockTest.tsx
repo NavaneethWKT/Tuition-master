@@ -1,15 +1,16 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { Checkbox } from "./ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
+import { Checkbox } from "../components/ui/checkbox";
 import { ArrowLeft, Clock, CheckCircle2, AlertCircle } from "lucide-react";
-import { Progress } from "./ui/progress";
-import { Alert, AlertDescription } from "./ui/alert";
+import { Progress } from "../components/ui/progress";
+import { Alert, AlertDescription } from "../components/ui/alert";
 import { useAuth } from "../contexts/AuthContext";
+import { PageHeader } from "../components/PageHeader";
 
 interface MockTestProps {
   isParentView?: boolean;
@@ -109,47 +110,26 @@ export function MockTest({ isParentView = false }: MockTestProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white border-b border-border sticky top-0 z-10">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  const dashboardRoute =
-                    userRole === "student"
-                      ? "/student/dashboard"
-                      : userRole === "parent"
-                      ? "/parent/dashboard"
-                      : "/login";
-                  navigate(dashboardRoute);
-                }}
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h2 className="text-gray-800">
-                  {isParentView ? "Mock Test Review" : "Mathematics Mock Test"}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {isParentView
-                    ? "Review your child's answers"
-                    : `Question ${currentQuestion + 1} of ${questions.length}`}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 bg-orange-50 px-4 py-2 rounded-xl">
-              <Clock className="w-5 h-5 text-orange-600" />
-              <span className="font-semibold text-orange-600">
-                {formatTime(timeRemaining)}
-              </span>
-            </div>
+      <PageHeader
+        title={isParentView ? "Mock Test Review" : "Mathematics Mock Test"}
+        subtitle={
+          isParentView
+            ? "Review your child's answers"
+            : `Question ${currentQuestion + 1} of ${questions.length}`
+        }
+        showBackButton={true}
+        rightAction={
+          <div className="flex items-center gap-3 bg-orange-50 px-4 py-2 rounded-xl">
+            <Clock className="w-5 h-5 text-orange-600" />
+            <span className="font-semibold text-orange-600">
+              {formatTime(timeRemaining)}
+            </span>
           </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-      </header>
+        }
+      />
+      <div className="container mx-auto px-6">
+        <Progress value={progress} className="h-2" />
+      </div>
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-4xl">

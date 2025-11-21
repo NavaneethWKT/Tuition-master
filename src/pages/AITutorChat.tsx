@@ -1,18 +1,18 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { ScrollArea } from "./ui/scroll-area";
+import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { ScrollArea } from "../components/ui/scroll-area";
 import {
-  ArrowLeft,
   Send,
   Mic,
   Image as ImageIcon,
-  Sparkles,
 } from "lucide-react";
 import { usePdf } from "../contexts/PdfContext";
 import { useAuth } from "../contexts/AuthContext";
+import { PageHeader } from "../components/PageHeader";
+import { Sparkles } from "lucide-react";
 
 interface Message {
   id: number;
@@ -66,37 +66,16 @@ export function AITutorChat() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-border">
-        <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              const dashboardRoute =
-                userRole === "student"
-                  ? "/student/dashboard"
-                  : userRole === "parent"
-                  ? "/parent/dashboard"
-                  : "/login";
-              navigate(dashboardRoute);
-            }}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-gray-800">AI Tuition Master</h2>
-              <p className="text-sm text-muted-foreground">
-                Your personal AI tutor
-              </p>
-            </div>
+      <PageHeader
+        title="AI Tuition Master"
+        subtitle="Your personal AI tutor"
+        showBackButton={true}
+        icon={
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+            <Sparkles className="w-6 h-6 text-white" />
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Main Content Area - Split Layout */}
       <div className="flex-1 flex overflow-hidden">

@@ -1,20 +1,17 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import {
   School,
   Users,
   UserPlus,
   Upload,
-  BarChart3,
-  LogOut,
   BookOpen,
   TrendingUp,
-  FileText,
 } from "lucide-react";
 import {
   Table,
@@ -23,41 +20,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "./ui/table";
-import { useAuth } from "../contexts/AuthContext";
+} from "../components/ui/table";
+import { DashboardHeader } from "../components/DashboardHeader";
+import { StatCard } from "../components/StatCard";
 
 export function SchoolAdminDashboard() {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white border-b border-border sticky top-0 z-10">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <School className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <span className="font-semibold text-foreground">
-                Tuition Master
-              </span>
-              <p className="text-xs text-muted-foreground">Admin Portal</p>
-            </div>
+      <DashboardHeader
+        title="Tuition Master"
+        subtitle="Admin Portal"
+        icon={
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+            <School className="w-6 h-6 text-white" />
           </div>
-          <Button variant="ghost" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </header>
+        }
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 space-y-6">
@@ -71,54 +51,37 @@ export function SchoolAdminDashboard() {
 
         {/* Stats Cards */}
         <div className="grid md:grid-cols-4 gap-6">
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-100">Total Students</p>
-                  <p className="text-3xl font-bold mt-1">1,248</p>
-                  <p className="text-xs text-blue-100 mt-1 flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" /> +12% this month
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-green-500 to-green-600 text-white">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-green-100">Active Teachers</p>
-                  <p className="text-3xl font-bold mt-1">42</p>
-                  <p className="text-xs text-green-100 mt-1">
-                    Across all subjects
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <UserPlus className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-100">Total Classes</p>
-                  <p className="text-3xl font-bold mt-1">28</p>
-                  <p className="text-xs text-orange-100 mt-1">Grades 1-12</p>
-                </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            label="Total Students"
+            value="1,248"
+            icon={Users}
+            gradient={true}
+            gradientFrom="from-blue-500"
+            gradientTo="to-blue-600"
+            subtitle={
+              <span className="flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" /> +12% this month
+              </span>
+            }
+          />
+          <StatCard
+            label="Active Teachers"
+            value={42}
+            icon={UserPlus}
+            gradient={true}
+            gradientFrom="from-green-500"
+            gradientTo="to-green-600"
+            subtitle="Across all subjects"
+          />
+          <StatCard
+            label="Total Classes"
+            value={28}
+            icon={BookOpen}
+            gradient={true}
+            gradientFrom="from-orange-500"
+            gradientTo="to-orange-600"
+            subtitle="Grades 1-12"
+          />
         </div>
 
         {/* Main Tabs */}

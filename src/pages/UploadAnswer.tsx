@@ -1,15 +1,15 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
 import {
-  ArrowLeft,
   Upload as UploadIcon,
   Camera,
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
-import { Progress } from "./ui/progress";
+import { Progress } from "../components/ui/progress";
+import { PageHeader } from "../components/PageHeader";
 
 export function UploadAnswer() {
   const navigate = useNavigate();
@@ -38,24 +38,12 @@ export function UploadAnswer() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white border-b border-border sticky top-0 z-10">
-        <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/student/dashboard")}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h2 className="text-gray-800">Upload Answer for Evaluation</h2>
-            <p className="text-sm text-muted-foreground">
-              Get instant AI-powered feedback on your answers
-            </p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title="Upload Answer for Evaluation"
+        subtitle="Get instant AI-powered feedback on your answers"
+        showBackButton={true}
+        backRoute="/student/dashboard"
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-5xl space-y-6">
