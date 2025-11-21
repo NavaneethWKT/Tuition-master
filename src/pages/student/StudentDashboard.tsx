@@ -38,9 +38,9 @@ export function StudentDashboard() {
 
       <div className="flex flex-col flex-1 max-w-7xl w-full mx-auto px-6 pt-10 pb-4 space-y-20">
         {/* Hero div */}
-        <div className="p-6 rounded-3xl bg-slate-100 shadow-sm border border-slate-200 flex flex-col">
-          <h1 className="text-2xl font-bold">Hello Arjun 👋</h1>
-          <p className="text-gray-600 mt-1">
+        <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm border border-slate-200 flex flex-col">
+          <h1 className="text-2xl text-white font-bold">Hello Arjun 👋</h1>
+          <p className="text-gray-100 mt-1">
             Ready to make progress today? Pick something below to get started.
           </p>
         </div>
@@ -64,9 +64,11 @@ export function StudentDashboard() {
         </div>
 
         {/* Motivation Banner */}
-        <div className="p-6 rounded-2xl bg-slate-100 text-center border border-slate-200 shadow-sm flex flex-col items-center justify-center">
-          <h3 className="text-lg font-medium">Stay consistent, Arjun! 🚀</h3>
-          <p className="text-gray-600 mt-1">
+        <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-center border border-slate-200 shadow-sm flex flex-col items-center justify-center">
+          <h3 className="text-lg font-medium text-white">
+            Stay consistent, Arjun! 🚀
+          </h3>
+          <p className="text-gray-100 mt-1">
             Even 1% growth every day leads to massive success.
           </p>
         </div>
