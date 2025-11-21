@@ -10,13 +10,13 @@ interface ActionCardProps {
   onClick: () => void;
 }
 
-export function ActionCard({
+export const ActionCard: React.FC<ActionCardProps> = ({
   title,
   description,
   icon: Icon,
   color,
   onClick,
-}: ActionCardProps) {
+}) => {
   return (
     <Card
       className="shadow-lg border-0 hover:shadow-xl transition-shadow cursor-pointer group"
@@ -35,4 +35,4 @@ export function ActionCard({
       </CardContent>
     </Card>
   );
-}
+};
