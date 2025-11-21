@@ -1,4 +1,5 @@
 import { React, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import {
@@ -12,11 +13,8 @@ import {
 import { ScrollArea } from "./ui/scroll-area";
 import { Progress } from "./ui/progress";
 
-interface RevisionProps {
-  onBack: () => void;
-}
-
-export function Revision({ onBack }: RevisionProps) {
+export function Revision() {
+  const navigate = useNavigate();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
@@ -115,7 +113,11 @@ export function Revision({ onBack }: RevisionProps) {
       {/* Header */}
       <header className="bg-white border-b border-border sticky top-0 z-10">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/student/dashboard")}
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>

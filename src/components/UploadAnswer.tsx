@@ -1,4 +1,5 @@
 import { React, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import {
@@ -10,11 +11,8 @@ import {
 } from "lucide-react";
 import { Progress } from "./ui/progress";
 
-interface UploadAnswerProps {
-  onBack: () => void;
-}
-
-export function UploadAnswer({ onBack }: UploadAnswerProps) {
+export function UploadAnswer() {
+  const navigate = useNavigate();
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -43,7 +41,11 @@ export function UploadAnswer({ onBack }: UploadAnswerProps) {
       {/* Header */}
       <header className="bg-white border-b border-border sticky top-0 z-10">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/student/dashboard")}
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
@@ -222,7 +224,10 @@ export function UploadAnswer({ onBack }: UploadAnswerProps) {
                     </p>
                   </div>
 
-                  <Button className="w-full" onClick={onBack}>
+                  <Button
+                    className="w-full"
+                    onClick={() => navigate("/student/dashboard")}
+                  >
                     Back to Dashboard
                   </Button>
                 </div>

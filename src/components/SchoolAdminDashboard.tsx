@@ -1,4 +1,5 @@
 import { React, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -23,12 +24,16 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
+import { useAuth } from "../contexts/AuthContext";
 
-interface SchoolAdminDashboardProps {
-  onLogout: () => void;
-}
+export function SchoolAdminDashboard() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
-export function SchoolAdminDashboard({ onLogout }: SchoolAdminDashboardProps) {
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
@@ -47,7 +52,7 @@ export function SchoolAdminDashboard({ onLogout }: SchoolAdminDashboardProps) {
               <p className="text-xs text-muted-foreground">Admin Portal</p>
             </div>
           </div>
-          <Button variant="ghost" onClick={onLogout}>
+          <Button variant="ghost" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>

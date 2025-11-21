@@ -1,4 +1,5 @@
 import { React, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
@@ -8,13 +9,15 @@ import { Checkbox } from "./ui/checkbox";
 import { ArrowLeft, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { Progress } from "./ui/progress";
 import { Alert, AlertDescription } from "./ui/alert";
+import { useAuth } from "../contexts/AuthContext";
 
 interface MockTestProps {
-  onBack: () => void;
   isParentView?: boolean;
 }
 
-export function MockTest({ onBack, isParentView = false }: MockTestProps) {
+export function MockTest({ isParentView = false }: MockTestProps) {
+  const navigate = useNavigate();
+  const { userRole } = useAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [timeRemaining, setTimeRemaining] = useState(1800); // 30 minutes in seconds
@@ -92,7 +95,13 @@ export function MockTest({ onBack, isParentView = false }: MockTestProps) {
 
     // Submit logic here
     alert("Test submitted successfully!");
-    onBack();
+    const dashboardRoute =
+      userRole === "student"
+        ? "/student/dashboard"
+        : userRole === "parent"
+        ? "/parent/dashboard"
+        : "/login";
+    navigate(dashboardRoute);
   };
 
   const unansweredCount = questions.filter((q) => !parentReviews[q.id]).length;
@@ -105,7 +114,19 @@ export function MockTest({ onBack, isParentView = false }: MockTestProps) {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={onBack}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  const dashboardRoute =
+                    userRole === "student"
+                      ? "/student/dashboard"
+                      : userRole === "parent"
+                      ? "/parent/dashboard"
+                      : "/login";
+                  navigate(dashboardRoute);
+                }}
+              >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>

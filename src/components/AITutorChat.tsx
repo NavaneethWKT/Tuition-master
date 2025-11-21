@@ -1,4 +1,5 @@
 import { React, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -10,12 +11,8 @@ import {
   Image as ImageIcon,
   Sparkles,
 } from "lucide-react";
-
-interface AITutorChatProps {
-  onBack: () => void;
-  pdfUrl?: string;
-  pdfTitle?: string;
-}
+import { usePdf } from "../contexts/PdfContext";
+import { useAuth } from "../contexts/AuthContext";
 
 interface Message {
   id: number;
@@ -23,7 +20,10 @@ interface Message {
   content: string;
 }
 
-export function AITutorChat({ onBack, pdfUrl, pdfTitle }: AITutorChatProps) {
+export function AITutorChat() {
+  const navigate = useNavigate();
+  const { selectedPdfUrl: pdfUrl, selectedPdfTitle: pdfTitle } = usePdf();
+  const { userRole } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -69,7 +69,19 @@ export function AITutorChat({ onBack, pdfUrl, pdfTitle }: AITutorChatProps) {
       {/* Header */}
       <header className="bg-white border-b border-border">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              const dashboardRoute =
+                userRole === "student"
+                  ? "/student/dashboard"
+                  : userRole === "parent"
+                  ? "/parent/dashboard"
+                  : "/login";
+              navigate(dashboardRoute);
+            }}
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-3">

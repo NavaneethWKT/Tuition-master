@@ -1,4 +1,5 @@
 import { React, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -13,12 +14,16 @@ import {
   LogOut,
   PlusCircle,
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
-interface TeacherDashboardProps {
-  onLogout: () => void;
-}
+export function TeacherDashboard() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
-export function TeacherDashboard({ onLogout }: TeacherDashboardProps) {
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
@@ -37,7 +42,7 @@ export function TeacherDashboard({ onLogout }: TeacherDashboardProps) {
               <p className="text-xs text-muted-foreground">Teacher Portal</p>
             </div>
           </div>
-          <Button variant="ghost" onClick={onLogout}>
+          <Button variant="ghost" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
