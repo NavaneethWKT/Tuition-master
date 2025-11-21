@@ -1,4 +1,5 @@
 import { React, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -11,19 +12,30 @@ import {
   CardTitle,
 } from "./ui/card";
 import { GraduationCap } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
-interface LoginPageProps {
-  onLogin: (role: string) => void;
-}
-
-export function LoginPage({ onLogin }: LoginPageProps) {
+export function LoginPage() {
+  const navigate = useNavigate();
+  const { setUserRole } = useAuth();
   const [activeRole, setActiveRole] = useState("student");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
     if (phone && password) {
-      onLogin(activeRole);
+      const role = activeRole as "student" | "parent" | "teacher" | "admin";
+      setUserRole(role);
+
+      // Navigate to appropriate dashboard
+      if (role === "student") {
+        navigate("/student/dashboard");
+      } else if (role === "parent") {
+        navigate("/parent/dashboard");
+      } else if (role === "teacher") {
+        navigate("/teacher/dashboard");
+      } else if (role === "admin") {
+        navigate("/admin/dashboard");
+      }
     }
   };
 
@@ -102,7 +114,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   <Button
                     variant="outline"
                     className="flex-1 h-12"
-                    onClick={() => onLogin("register")}
+                    onClick={() => navigate("/register")}
                   >
                     Register
                   </Button>

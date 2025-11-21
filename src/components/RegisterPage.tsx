@@ -1,4 +1,5 @@
 import { React, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -17,13 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { useAuth } from "../contexts/AuthContext";
 
-interface RegisterPageProps {
-  onRegister: () => void;
-  onBack: () => void;
-}
-
-export function RegisterPage({ onRegister, onBack }: RegisterPageProps) {
+export function RegisterPage() {
+  const navigate = useNavigate();
+  const { setUserRole } = useAuth();
   const [formData, setFormData] = useState({
     studentName: "",
     parentName: "",
@@ -40,7 +39,9 @@ export function RegisterPage({ onRegister, onBack }: RegisterPageProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password === formData.confirmPassword) {
-      onRegister();
+      // After successful registration, log them in as student
+      setUserRole("student");
+      navigate("/student/dashboard");
     }
   };
 
@@ -54,7 +55,11 @@ export function RegisterPage({ onRegister, onBack }: RegisterPageProps) {
         <Card className="shadow-2xl border-0">
           <CardHeader className="space-y-3">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={onBack}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/login")}
+              >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div className="flex items-center gap-3">
@@ -248,7 +253,7 @@ export function RegisterPage({ onRegister, onBack }: RegisterPageProps) {
                   Already have an account?{" "}
                   <button
                     type="button"
-                    onClick={onBack}
+                    onClick={() => navigate("/login")}
                     className="text-primary font-medium hover:underline"
                   >
                     Login here

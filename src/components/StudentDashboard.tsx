@@ -1,4 +1,5 @@
 import { React } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
@@ -12,46 +13,47 @@ import {
   LogOut,
   Coins,
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
-interface StudentDashboardProps {
-  onNavigate: (page: string) => void;
-  onLogout: () => void;
-}
+export function StudentDashboard() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
-export function StudentDashboard({
-  onNavigate,
-  onLogout,
-}: StudentDashboardProps) {
   const actionCards = [
     {
       title: "AI Tuition Master",
       description: "Get personalized AI tutoring",
       icon: Bot,
       color: "bg-purple-500",
-      page: "ai-chat",
+      route: "/student/ai-chat",
     },
     {
       title: "Class Notes",
       description: "View materials from teachers",
       icon: BookOpen,
       color: "bg-indigo-500",
-      page: "class-notes",
+      route: "/student/class-notes",
     },
     {
       title: "Revision",
       description: "Review your saved topics",
       icon: RotateCcw,
       color: "bg-green-500",
-      page: "revision",
+      route: "/student/revision",
     },
     {
       title: "Mock Test Generator",
       description: "Practice with AI-generated tests",
       icon: FlaskConical,
       color: "bg-orange-500",
-      page: "mock-test",
+      route: "/student/mock-test",
     },
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,7 +68,7 @@ export function StudentDashboard({
               Tuition Master
             </span>
           </div>
-          <Button variant="ghost" onClick={onLogout}>
+          <Button variant="ghost" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
@@ -91,9 +93,9 @@ export function StudentDashboard({
               const Icon = card.icon;
               return (
                 <Card
-                  key={card.page}
+                  key={card.route}
                   className="shadow-lg border-0 hover:shadow-xl transition-shadow cursor-pointer group"
-                  onClick={() => onNavigate(card.page)}
+                  onClick={() => navigate(card.route)}
                 >
                   <CardContent className="pt-6 space-y-4">
                     <div

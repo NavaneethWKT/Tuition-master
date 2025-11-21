@@ -1,4 +1,5 @@
 import { React, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -18,13 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { usePdf } from "../contexts/PdfContext";
+import { useAuth } from "../contexts/AuthContext";
 
-interface ClassNotesProps {
-  onBack: () => void;
-  onNavigateToAI?: (pdfUrl: string, pdfTitle: string) => void;
-}
-
-export function ClassNotes({ onBack, onNavigateToAI }: ClassNotesProps) {
+export function ClassNotes() {
+  const navigate = useNavigate();
+  const { setPdf } = usePdf();
+  const { userRole } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("all");
 
@@ -158,7 +159,11 @@ export function ClassNotes({ onBack, onNavigateToAI }: ClassNotesProps) {
       {/* Header */}
       <header className="bg-white border-b border-border sticky top-0 z-10">
         <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/student/dashboard")}
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
@@ -310,8 +315,9 @@ export function ClassNotes({ onBack, onNavigateToAI }: ClassNotesProps) {
                     <Button
                       className="flex-1 gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
                       onClick={() => {
-                        if (onNavigateToAI && note.fileUrl) {
-                          onNavigateToAI(note.fileUrl, note.title);
+                        if (note.fileUrl) {
+                          setPdf(note.fileUrl, note.title);
+                          navigate("/student/ai-chat");
                         }
                       }}
                     >

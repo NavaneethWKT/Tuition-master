@@ -1,4 +1,5 @@
 import { React } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import {
@@ -10,16 +11,16 @@ import {
   TrendingUp,
   FlaskConical,
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
-interface ParentDashboardProps {
-  onNavigate: (page: string) => void;
-  onLogout: () => void;
-}
+export function ParentDashboard() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
-export function ParentDashboard({
-  onNavigate,
-  onLogout,
-}: ParentDashboardProps) {
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
   // Mock student data
   const studentInfo = {
     name: "Arjun Sharma",
@@ -73,7 +74,7 @@ export function ParentDashboard({
               Tuition Master
             </span>
           </div>
-          <Button variant="ghost" onClick={onLogout}>
+          <Button variant="ghost" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
@@ -123,7 +124,7 @@ export function ParentDashboard({
             {/* Mock Test Generator Card - Same as StudentDashboard */}
             <Card
               className="shadow-lg border-0 hover:shadow-xl transition-shadow cursor-pointer group"
-              onClick={() => onNavigate("mock-test")}
+              onClick={() => navigate("/parent/mock-test")}
             >
               <CardContent className="pt-6 space-y-4">
                 <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -141,7 +142,7 @@ export function ParentDashboard({
             {/* Mock Test Review Card */}
             <Card
               className="shadow-lg border-0 hover:shadow-xl transition-shadow cursor-pointer"
-              onClick={() => onNavigate("mock-test")}
+              onClick={() => navigate("/parent/mock-test")}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -162,7 +163,7 @@ export function ParentDashboard({
             {/* Student Analytics Card */}
             <Card
               className="shadow-lg border-0 hover:shadow-xl transition-shadow cursor-pointer"
-              onClick={() => onNavigate("analytics")}
+              onClick={() => navigate("/parent/analytics")}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
