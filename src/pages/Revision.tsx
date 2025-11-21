@@ -1,17 +1,16 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
 import {
-  ArrowLeft,
-  Upload,
-  FileText,
-  Sparkles,
-  CheckCircle2,
-  Star,
-} from "lucide-react";
-import { ScrollArea } from "./ui/scroll-area";
-import { Progress } from "./ui/progress";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Upload, FileText, Sparkles, CheckCircle2, Star } from "lucide-react";
+import { ScrollArea } from "../components/ui/scroll-area";
+import { Progress } from "../components/ui/progress";
+import { PageHeader } from "../components/PageHeader";
 
 export function Revision() {
   const navigate = useNavigate();
@@ -110,24 +109,12 @@ export function Revision() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white border-b border-border sticky top-0 z-10">
-        <div className="container mx-auto px-6 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/student/dashboard")}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h2 className="text-gray-800">Revision Center</h2>
-            <p className="text-sm text-muted-foreground">
-              Review your saved topics and generate AI summaries
-            </p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title="Revision Center"
+        subtitle="Review your saved topics and generate AI summaries"
+        showBackButton={true}
+        backRoute="/student/dashboard"
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-6xl space-y-6">

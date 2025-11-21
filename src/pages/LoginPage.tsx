@@ -1,16 +1,21 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./ui/card";
+} from "../components/ui/card";
 import { GraduationCap } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -204,8 +209,12 @@ export function LoginPage() {
                   <Button onClick={handleLogin} className="flex-1 h-12">
                     Login
                   </Button>
-                  {activeRole !== "Teacher" && (
-                    <Button variant="outline" className="flex-1 h-12">
+                  {activeRole !== "teacher" && (
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-12"
+                      onClick={() => navigate("/register")}
+                    >
                       Register
                     </Button>
                   )}
