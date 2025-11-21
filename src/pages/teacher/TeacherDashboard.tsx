@@ -29,6 +29,34 @@ import { StatCard } from "../../components/StatCard";
 
 export function TeacherDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [materials, setMaterials] = useState([
+    {
+      name: "Chapter 5 - Algebra Notes.pdf",
+      date: "Nov 20, 2025",
+      size: "2.4 MB",
+      url: "/materials/chapter5.pdf",
+    },
+    {
+      name: "Practice Problems Set 3.pdf",
+      date: "Nov 18, 2025",
+      size: "1.8 MB",
+      url: "/materials/chapter5.pdf",
+    },
+    {
+      name: "Trigonometry Formulas.pdf",
+      date: "Nov 15, 2025",
+      size: "856 KB",
+      url: "/materials/chapter5.pdf",
+    },
+  ]);
+  const handleViewMaterial = (url) => {
+    window.open(url, "_blank");
+  };
+
+  const handleDeleteMaterial = (index) => {
+    setMaterials((prev) => prev.filter((_, i) => i !== index));
+  };
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader
@@ -61,18 +89,11 @@ export function TeacherDashboard() {
             iconColor="text-blue-600"
           />
           <StatCard
-            label="Classes"
+            label="Total Classes"
             value={8}
             icon={BookOpen}
             iconBg="bg-green-100"
             iconColor="text-green-600"
-          />
-          <StatCard
-            label="Tests Created"
-            value={24}
-            icon={FileText}
-            iconBg="bg-orange-100"
-            iconColor="text-orange-600"
           />
         </div>
 
@@ -89,11 +110,11 @@ export function TeacherDashboard() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-1 gap-6">
               {/* Recent Classes */}
               <Card className="shadow-lg border-0">
                 <CardHeader>
-                  <CardTitle>Recent Classes</CardTitle>
+                  <CardTitle>Your Classes</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -126,7 +147,12 @@ export function TeacherDashboard() {
                               students
                             </p>
                           </div>
-                          <Button size="sm">View</Button>
+                          <Button
+                            size="sm"
+                            onClick={() => navigate(`/teacher/class`)}
+                          >
+                            View
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -173,24 +199,8 @@ export function TeacherDashboard() {
 
                   {/* Uploaded Materials List */}
                   <div className="space-y-3 mt-6">
-                    <h4 className="font-medium">Recently Uploaded</h4>
-                    {[
-                      {
-                        name: "Chapter 5 - Algebra Notes.pdf",
-                        date: "Nov 20, 2025",
-                        size: "2.4 MB",
-                      },
-                      {
-                        name: "Practice Problems Set 3.pdf",
-                        date: "Nov 18, 2025",
-                        size: "1.8 MB",
-                      },
-                      {
-                        name: "Trigonometry Formulas.pdf",
-                        date: "Nov 15, 2025",
-                        size: "856 KB",
-                      },
-                    ].map((material, index) => (
+                    <h4 className="font-medium">Uploaded Materials</h4>
+                    {materials.map((material, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
@@ -206,9 +216,25 @@ export function TeacherDashboard() {
                             </p>
                           </div>
                         </div>
-                        <Button variant="ghost" size="sm">
-                          View
-                        </Button>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewMaterial(material.url)}
+                          >
+                            View
+                          </Button>
+
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteMaterial(index)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
