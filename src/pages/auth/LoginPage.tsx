@@ -18,6 +18,8 @@ import {
 } from "../../components/ui/card";
 import { GraduationCap } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import apiClient from "../../services/apiClient";
+
 export function LoginPage() {
   const navigate = useNavigate();
   const { setUserRole } = useAuth();
@@ -28,6 +30,11 @@ export function LoginPage() {
   const handleLogin = () => {
     if (phone && password) {
       const role = activeRole as "student" | "parent" | "teacher" | "admin";
+      apiClient.login({
+        phone,
+        password,
+        role,
+      });
       setUserRole(role);
 
       // Navigate to appropriate dashboard
