@@ -61,7 +61,7 @@ export function ParentDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper">
       <DashboardHeader />
 
       {/* Main Content */}
@@ -104,14 +104,6 @@ export function ParentDashboard() {
         <div>
           <h2 className="mb-6 text-gray-800">Quick Actions</h2>
           <div className="grid md:grid-cols-3 gap-6">
-            <ActionCard
-              title="Mock Test Generator"
-              description="Practice with AI-generated tests"
-              icon={FlaskConical}
-              color="bg-orange-500"
-              onClick={() => navigate("/parent/mock-test")}
-            />
-
             {/* Mock Test Review Card */}
             <Card
               className="shadow-lg border-0 hover:shadow-xl transition-shadow cursor-pointer"
@@ -119,7 +111,7 @@ export function ParentDashboard() {
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Mock Test Review</CardTitle>
+                  <CardTitle>Generate Mock Test</CardTitle>
                   <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
                     <FileText className="w-6 h-6 text-orange-600" />
                   </div>
@@ -154,90 +146,6 @@ export function ParentDashboard() {
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        {/* Recent Test Results */}
-        <Card className="shadow-lg border-0">
-          <CardHeader>
-            <CardTitle>Recent Test Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentTestResults.map((test, index) => (
-                <div
-                  key={index}
-                  className="p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-medium mb-1">{test.testName}</h4>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>
-                          Score: {test.score}/{test.totalMarks}
-                        </span>
-                        <span>•</span>
-                        <span>{test.date}</span>
-                        <span>•</span>
-                        <span className="text-green-600 font-medium">
-                          {test.status}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-primary">
-                        {test.score}%
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Overall Statistics */}
-        <div className="grid md:grid-cols-4 gap-6">
-          <StatCard
-            label="Average Score"
-            value={`${overallStats.averageScore}%`}
-            icon={TrendingUp}
-            iconBg="bg-blue-100"
-            iconColor="text-blue-600"
-          />
-          <StatCard
-            label="Tests Completed"
-            value={overallStats.testsCompleted}
-            icon={FileText}
-            iconBg="bg-green-100"
-            iconColor="text-green-600"
-          />
-          <StatCard
-            label="Improvement"
-            value={overallStats.improvement}
-            icon={TrendingUp}
-            iconBg="bg-orange-100"
-            iconColor="text-orange-600"
-          />
-
-          <Card className="shadow-lg border-0">
-            <CardContent className="pt-6">
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Areas to Improve
-                </p>
-                <div className="space-y-1">
-                  {overallStats.weakAreas.map((area, index) => (
-                    <span
-                      key={index}
-                      className="inline-block bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full mr-1"
-                    >
-                      {area}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </main>
     </div>
