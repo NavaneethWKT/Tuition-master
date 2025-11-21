@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -11,12 +11,14 @@ export function ProtectedRoute({
   children,
   allowedRoles,
 }: ProtectedRouteProps) {
-  const { userRole } = useAuth();
+  const { userRole, isAuthenticated } = useAuth();
 
-  if (!userRole) {
+  // Check if user is authenticated (has role - token may be null)
+  if (!isAuthenticated || !userRole) {
     return <Navigate to="/login" replace />;
   }
 
+  // Check if user's role is allowed
   if (!allowedRoles.includes(userRole)) {
     return <Navigate to="/login" replace />;
   }

@@ -46,11 +46,32 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { setUserRole } = useAuth();
+  const {
+    setUserRole,
+    setUserData,
+    setAccessToken,
+    userRole,
+    isAuthenticated,
+  } = useAuth();
   const [activeRole, setActiveRole] = useState("student");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Redirect if already logged in
+  React.useEffect(() => {
+    if (isAuthenticated && userRole) {
+      if (userRole === "student") {
+        navigate("/student/dashboard", { replace: true });
+      } else if (userRole === "parent") {
+        navigate("/parent/dashboard", { replace: true });
+      } else if (userRole === "teacher") {
+        navigate("/teacher/dashboard", { replace: true });
+      } else if (userRole === "school") {
+        navigate("/admin/dashboard", { replace: true });
+      }
+    }
+  }, [isAuthenticated, userRole, navigate]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -72,26 +93,36 @@ export function LoginPage() {
         password: values.password,
       });
 
-      // Store token if provided in response
-      if (response.token) {
-        localStorage.setItem("authToken", response.token);
-      }
+      // Store access token (even if null, store it for consistency)
+      setAccessToken(response.access_token || null);
 
-      // Store user data if provided
-      if (response.user) {
-        localStorage.setItem("userData", JSON.stringify(response.user));
-      }
+      // Store user data from response
+      const userData = {
+        id: response.id,
+        name: response.name,
+        persona: response.persona,
+        contact_email: response.contact_email,
+        contact_phone: response.contact_phone,
+        city: response.city,
+        state: response.state,
+        board_affiliation: response.board_affiliation,
+        created_at: response.created_at,
+      };
+      setUserData(userData);
 
-      setUserRole(role);
+      // Set user role from response persona
+      setUserRole(response.persona);
 
-      // Navigate to appropriate dashboard
-      if (role === "student") {
+      // Navigate to appropriate dashboard based on persona from response
+      // Use response.persona instead of userRole since state update is async
+      const persona = response.persona;
+      if (persona === "student") {
         navigate("/student/dashboard");
-      } else if (role === "parent") {
+      } else if (persona === "parent") {
         navigate("/parent/dashboard");
-      } else if (role === "teacher") {
+      } else if (persona === "teacher") {
         navigate("/teacher/dashboard");
-      } else if (role === "school") {
+      } else if (persona === "school") {
         navigate("/admin/dashboard");
       }
     } catch (err: any) {
