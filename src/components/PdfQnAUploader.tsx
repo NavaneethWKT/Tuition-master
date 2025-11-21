@@ -39,6 +39,10 @@ export default function PdfQnAUploader({ role }: Props) {
     [qId: string]: "right" | "wrong" | null;
   }>({});
 
+  // Ensure role is properly typed
+  const isParent = role === "parent";
+  const isStudent = role === "student";
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -123,7 +127,7 @@ export default function PdfQnAUploader({ role }: Props) {
   };
 
   const getStats = () => {
-    if (role === "parent") {
+    if (isParent) {
       const total = qna.length;
       const marked = Object.values(parentMarkings).filter(
         (m) => m !== null
@@ -150,7 +154,7 @@ export default function PdfQnAUploader({ role }: Props) {
         <Card className="shadow-lg border-0">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
                 <FileText className="w-6 h-6 text-white" />
               </div>
               Upload PDF to Generate Questions
@@ -164,7 +168,7 @@ export default function PdfQnAUploader({ role }: Props) {
                 onDrop={handleDrop}
                 className={`border-2 border-dashed rounded-xl p-8 transition-all ${
                   isDragging
-                    ? "border-primary bg-primary/5"
+                    ? "border-primary bg-primary"
                     : "border-border hover:border-primary/50"
                 }`}
               >
@@ -172,16 +176,12 @@ export default function PdfQnAUploader({ role }: Props) {
                   <div
                     className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-transform ${
                       isDragging ? "scale-110" : ""
-                    } ${
-                      file
-                        ? "bg-green-100"
-                        : "bg-gradient-to-br from-purple-100 to-blue-100"
-                    }`}
+                    } ${file ? "bg-green-100" : "bg-primary"}`}
                   >
                     {file ? (
                       <FileCheck className="w-10 h-10 text-green-600" />
                     ) : (
-                      <Upload className="w-10 h-10 text-primary" />
+                      <Upload className="w-10 h-10 text-white" />
                     )}
                   </div>
                   <div className="text-center">
@@ -255,7 +255,7 @@ export default function PdfQnAUploader({ role }: Props) {
 
               <Button
                 type="submit"
-                className="w-full h-12 text-base font-semibold bg-primary hover:from-purple-600 hover:to-blue-600"
+                className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary"
                 disabled={loading || !file}
               >
                 {loading ? (
@@ -288,14 +288,14 @@ export default function PdfQnAUploader({ role }: Props) {
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-white mb-1">
-                      {role === "parent" ? `Review Progress` : `Test Progress`}
+                      {isParent ? `Review Progress` : `Test Progress`}
                     </h3>
                     <div className="flex gap-6 text-sm">
                       <div>
                         <p className="text-blue-100">Total Questions</p>
                         <p className="text-2xl font-bold">{stats.total}</p>
                       </div>
-                      {role === "parent" ? (
+                      {isParent ? (
                         <>
                           <div>
                             <p className="text-blue-100">Marked</p>
@@ -343,7 +343,7 @@ export default function PdfQnAUploader({ role }: Props) {
                 <Card
                   key={q.id}
                   className={`shadow-lg border-0 transition-all hover:shadow-xl ${
-                    role === "parent" && isMarked
+                    isParent && isMarked
                       ? isCorrect
                         ? "bg-green-50 border-green-200"
                         : "bg-red-50 border-red-200"
@@ -354,7 +354,7 @@ export default function PdfQnAUploader({ role }: Props) {
                     <div className="flex items-start gap-4">
                       {/* Question Number Badge */}
                       <div className="flex-shrink-0">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                        <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-lg shadow-md">
                           {index + 1}
                         </div>
                       </div>
@@ -365,14 +365,8 @@ export default function PdfQnAUploader({ role }: Props) {
                           <p className="text-lg font-semibold text-gray-800 mb-1">
                             {q.question}
                           </p>
-                          {role === "parent" && (
-                            <div className="mt-3 p-3 rounded-lg bg-green-50 border border-green-200">
-                              <div className="flex items-center gap-2 mb-1">
-                                <CheckCircle2 className="w-4 h-4 text-green-600" />
-                                <span className="text-sm font-semibold text-green-800">
-                                  Correct Answer:
-                                </span>
-                              </div>
+                          {isParent && (
+                            <div className="mt-3 p-3 rounded-lg bg-gray-50 border border-green-200">
                               <p className="text-green-700 font-medium">
                                 {q.answer}
                               </p>
@@ -380,7 +374,7 @@ export default function PdfQnAUploader({ role }: Props) {
                           )}
                         </div>
 
-                        {role === "parent" ? (
+                        {isParent ? (
                           <div className="flex gap-3">
                             <Button
                               variant={
@@ -442,12 +436,6 @@ export default function PdfQnAUploader({ role }: Props) {
                                 }))
                               }
                             />
-                            {hasAnswer && (
-                              <div className="flex items-center gap-2 text-sm text-green-600">
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>Answer saved</span>
-                              </div>
-                            )}
                           </div>
                         )}
                       </div>
@@ -459,28 +447,26 @@ export default function PdfQnAUploader({ role }: Props) {
           </div>
 
           {/* Completion Message */}
-          {role === "parent" &&
-            stats.marked === stats.total &&
-            stats.total > 0 && (
-              <Card className="shadow-lg border-0 bg-gradient-to-br from-emerald-500 to-green-500 text-white">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                      <Award className="w-8 h-8 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-white mb-1">
-                        Review Complete! 🎉
-                      </h3>
-                      <p className="text-green-100">
-                        You've reviewed all {stats.total} questions. Your child
-                        got {stats.correct} correct answers.
-                      </p>
-                    </div>
+          {isParent && stats.marked === stats.total && stats.total > 0 && (
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-emerald-500 to-green-500 text-white">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                    <Award className="w-8 h-8 text-white" />
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-1">
+                      Review Complete! 🎉
+                    </h3>
+                    <p className="text-green-100">
+                      You've reviewed all {stats.total} questions. Your child
+                      got {stats.correct} correct answers.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>

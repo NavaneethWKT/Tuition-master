@@ -16,6 +16,7 @@ import { ClassNotes } from "./pages/student/ClassNotes";
 import { Revision } from "./pages/student/Revision";
 import { TeacherClass } from "./pages/teacher/TeacherClass";
 import MockTest from "./pages/student/MockTest";
+import ParentMockTestPage from "./pages/parent/MockTestPage";
 
 export default function App() {
   return (
@@ -92,7 +93,7 @@ export default function App() {
                 path="/parent/mock-test"
                 element={
                   <ProtectedRoute allowedRoles={["parent"]}>
-                    <MockTest isParentView={true} />
+                    <ParentMockTestPage />
                   </ProtectedRoute>
                 }
               />
