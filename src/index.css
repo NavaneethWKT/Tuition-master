@@ -212,6 +212,13 @@
     text-decoration: underline dotted;
   }
 
+  /* Notebook / Study paper pattern */
+  .bg-paper {
+    background-color: #fafafa;
+    background-image: radial-gradient(#c9c9c9 1px, transparent 0.5px);
+    background-size: 30px 30px;
+  }
+
   h1,
   h2,
   h3,
