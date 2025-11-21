@@ -18,7 +18,6 @@ import {
 } from "../../components/ui/card";
 import { GraduationCap } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-
 export function LoginPage() {
   const navigate = useNavigate();
   const { setUserRole } = useAuth();
@@ -45,164 +44,90 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      <div className="w-full max-w-6xl grid md:grid-cols-2 gap-12 items-center">
+    <div className="min-h-screen w-full flex items-center justify-center bg-paper p-4 relative overflow-hidden">
+      <div className="relative z-10 w-full max-w-7xl grid md:grid-cols-2 gap-12 items-center">
         {/* Hero Section */}
-        <div className="hidden md:flex flex-col justify-center space-y-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
+        <div className="hidden md:flex flex-col justify-center space-y-6 pr-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
               <GraduationCap className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-blue-600">Tuition Master</h1>
+            <h1 className="text-4xl font-bold text-blue-700">Tuition Master</h1>
           </div>
-          <h2 className="text-gray-800">AI-Powered Learning Platform</h2>
-          <p className="text-gray-600">
-            Experience personalized education with AI tutoring, automated
-            assessments, and comprehensive learning management for students,
-            parents, teachers, and administrators.
+
+          <h2 className="text-5xl font-extrabold text-gray-800 leading-tight">
+            Smarter Learning
+            <br /> Starts Today
+          </h2>
+
+          <p className="text-gray-600 text-lg">
+            AI-driven learning, real-time academic tracking & seamless
+            collaboration for students, parents, teachers and administrators —
+            all in one place.
           </p>
-          <img
-            src="https://images.unsplash.com/photo-1760006782177-7f05cce886bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlZHVjYXRpb24lMjBsZWFybmluZyUyMGlsbHVzdHJhdGlvbnxlbnwxfHx8fDE3NjM3MjIxNDR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-            alt="Education illustration"
-            className="w-full rounded-2xl shadow-lg"
-          />
+
+          <img src="/assets/login-bg.png" className="w-full mt-4" />
         </div>
 
         {/* Login Form */}
-        <Card className="shadow-2xl border-0">
+        <Card className="shadow-2xl border-0 rounded-3xl bg-white/70 backdrop-blur-xl">
           <CardHeader className="space-y-3">
-            <CardTitle>Welcome Back!</CardTitle>
-            <CardDescription>
-              Select your role and sign in to continue
+            <CardTitle className="text-3xl font-bold">Welcome Back!</CardTitle>
+            <CardDescription className="text-gray-600">
+              Log in to access your personalized dashboard
             </CardDescription>
           </CardHeader>
-          <CardContent>
+
+          <CardContent className="px-8 pb-10">
             <Tabs
               value={activeRole}
               onValueChange={setActiveRole}
               className="w-full"
             >
-              <TabsList className="grid w-full grid-cols-4 mb-6">
-                <TabsTrigger value="student">Student</TabsTrigger>
-                <TabsTrigger value="parent">Parent</TabsTrigger>
-                <TabsTrigger value="teacher">Teacher</TabsTrigger>
-                <TabsTrigger value="admin">School Admin</TabsTrigger>
+              <TabsList className="grid grid-cols-4 w-full mb-6 bg-gray-100 p-1 rounded-xl">
+                <TabsTrigger value="student" className="text-sm font-medium">
+                  Student
+                </TabsTrigger>
+                <TabsTrigger value="parent" className="text-sm font-medium">
+                  Parent
+                </TabsTrigger>
+                <TabsTrigger value="teacher" className="text-sm font-medium">
+                  Teacher
+                </TabsTrigger>
+                <TabsTrigger value="admin" className="text-sm font-medium">
+                  School Admin
+                </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="student" className="space-y-6">
+              <TabsContent value={activeRole} className="space-y-6 mt-2">
                 <div className="space-y-2">
-                  <Label htmlFor="phone-student">Phone Number</Label>
+                  <Label>Phone Number</Label>
                   <Input
-                    id="phone-student"
                     type="tel"
                     placeholder="+91 98765 43210"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="h-12"
+                    className="h-12 text-lg"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="password-student">Password</Label>
+                  <Label>Password</Label>
                   <Input
-                    id="password-student"
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-12"
+                    className="h-12 text-lg"
                   />
                 </div>
-                <div className="flex gap-3">
-                  <Button onClick={handleLogin} className="flex-1 h-12">
+
+                <div className="flex gap-3 pt-2">
+                  <Button onClick={handleLogin} className="flex-1 h-12 text-lg">
                     Login
                   </Button>
-                </div>
-              </TabsContent>
 
-              <TabsContent value="parent" className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="phone-parent">Phone Number</Label>
-                  <Input
-                    id="phone-parent"
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="h-12"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password-parent">Password</Label>
-                  <Input
-                    id="password-parent"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-12"
-                  />
-                </div>
-                <Button onClick={handleLogin} className="w-full h-12">
-                  Login
-                </Button>
-              </TabsContent>
-
-              <TabsContent value="teacher" className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="phone-teacher">Phone Number</Label>
-                  <Input
-                    id="phone-teacher"
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="h-12"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password-teacher">Password</Label>
-                  <Input
-                    id="password-teacher"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-12"
-                  />
-                </div>
-                <Button onClick={handleLogin} className="w-full h-12">
-                  Login
-                </Button>
-              </TabsContent>
-
-              <TabsContent value="admin" className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="phone-admin">Phone Number</Label>
-                  <Input
-                    id="phone-admin"
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="h-12"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password-admin">Password</Label>
-                  <Input
-                    id="password-admin"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-12"
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <Button onClick={handleLogin} className="flex-1 h-12">
-                    Login
-                  </Button>
-                  {activeRole === "admin" ? (
+                  {activeRole === "admin" && (
                     <Button
                       variant="outline"
                       className="flex-1 h-12"
@@ -210,15 +135,7 @@ export function LoginPage() {
                     >
                       Register School
                     </Button>
-                  ) : activeRole !== "teacher" ? (
-                    <Button
-                      variant="outline"
-                      className="flex-1 h-12"
-                      onClick={() => navigate("/register")}
-                    >
-                      Register
-                    </Button>
-                  ) : null}
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
