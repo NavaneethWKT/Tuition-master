@@ -1,11 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  BookOpen,
-  Bot,
-  RotateCcw,
-  FlaskConical,
-} from "lucide-react";
+import { BookOpen, Bot, RotateCcw, FlaskConical } from "lucide-react";
 import { DashboardHeader } from "../components/DashboardHeader";
 import { ActionCard } from "../components/ActionCard";
 

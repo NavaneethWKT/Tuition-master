@@ -78,4 +78,3 @@ export function StatCard({
     </Card>
   );
 }
-

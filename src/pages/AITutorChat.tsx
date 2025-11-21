@@ -4,11 +4,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { ScrollArea } from "../components/ui/scroll-area";
-import {
-  Send,
-  Mic,
-  Image as ImageIcon,
-} from "lucide-react";
+import { Send, Mic, Image as ImageIcon } from "lucide-react";
 import { usePdf } from "../contexts/PdfContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/PageHeader";
