@@ -116,13 +116,6 @@ export function LoginPage() {
                   <Button onClick={handleLogin} className="flex-1 h-12">
                     Login
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 h-12"
-                    onClick={() => navigate("/register")}
-                  >
-                    Register
-                  </Button>
                 </div>
               </TabsContent>
 
@@ -209,7 +202,15 @@ export function LoginPage() {
                   <Button onClick={handleLogin} className="flex-1 h-12">
                     Login
                   </Button>
-                  {activeRole !== "teacher" && (
+                  {activeRole === "admin" ? (
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-12"
+                      onClick={() => navigate("/school-onboarding")}
+                    >
+                      Register School
+                    </Button>
+                  ) : activeRole !== "teacher" ? (
                     <Button
                       variant="outline"
                       className="flex-1 h-12"
@@ -217,7 +218,7 @@ export function LoginPage() {
                     >
                       Register
                     </Button>
-                  )}
+                  ) : null}
                 </div>
               </TabsContent>
             </Tabs>
