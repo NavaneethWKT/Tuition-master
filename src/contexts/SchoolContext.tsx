@@ -9,24 +9,17 @@ import React, {
 interface SchoolData {
   // School Basic Information
   schoolName: string;
-  schoolType: string;
   establishmentYear: string;
   boardAffiliation: string;
-  schoolCategory: string;
 
   // Contact Information
   email: string;
   phone: string;
-  alternatePhone: string;
-  website: string;
 
   // Address Information
-  addressLine1: string;
-  addressLine2: string;
   city: string;
   state: string;
   pincode: string;
-  country: string;
 
   // Administrative Details
   principalName: string;
@@ -35,37 +28,6 @@ interface SchoolData {
   adminName: string;
   adminEmail: string;
   adminPhone: string;
-
-  // School Infrastructure
-  totalClassrooms: string;
-  totalLabs: string;
-  libraryAvailable: string;
-  playgroundAvailable: string;
-  computerLabAvailable: string;
-  scienceLabAvailable: string;
-  auditoriumAvailable: string;
-  canteenAvailable: string;
-
-  // Academic Information
-  academicYearStart: string;
-  academicYearEnd: string;
-  totalStudents: string;
-  totalTeachers: string;
-  totalStaff: string;
-  gradesOffered: string[];
-  mediumOfInstruction: string;
-
-  // Facilities & Features
-  transportFacility: string;
-  hostelFacility: string;
-  sportsFacility: string;
-  extracurricularActivities: string;
-
-  // Additional Information
-  description: string;
-  vision: string;
-  mission: string;
-  achievements: string;
 }
 
 interface SchoolContextType {
