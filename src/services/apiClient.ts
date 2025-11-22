@@ -90,6 +90,9 @@ class TuitionMasterApiClient {
     return this.makeRequest<any>({
       method: "get",
       url: `/school-admin/schools/${schoolId}/teachers`,
+    });
+  }
+
   // register school
   public async registerSchool(data: any): Promise<any> {
     return this.makeRequest<any>({
