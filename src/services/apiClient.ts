@@ -204,7 +204,7 @@ const getEnvVar = (key: string, defaultValue: string): string => {
 
 const API_BASE_URL = getEnvVar(
   "VITE_API_BASE_URL",
-  "http://localhost:8000/api"
+  "http://192.168.1.16:8000/api"
 );
 
 export default new TuitionMasterApiClient(API_BASE_URL);

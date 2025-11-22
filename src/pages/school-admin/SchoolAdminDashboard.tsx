@@ -378,36 +378,38 @@ export function SchoolAdminDashboard() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <School className="w-5 h-5" />
-                      School Basic Information
+                      About your Organisation
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
+                  <CardContent className="space-y-6">
+                    {/* School Name */}
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-semibold text-foreground flex items-center gap-2">
                         <GraduationCap className="w-4 h-4" />
                         School Name
                       </p>
-                      <p className="text-base">
+                      <p className="text-lg font-medium">
                         {schoolDetails?.name || schoolData?.schoolName || "N/A"}
                       </p>
                     </div>
 
-                    <div className="pt-4 border-t space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="font-semibold text-foreground">
-                          Board Affiliation:
+                    <div className="grid grid-cols-1 gap-4 text-sm">
+                      <div className="flex flex-col space-y-1">
+                        <span className="text-muted-foreground">
+                          Board Affiliation
                         </span>
-                        <span className="uppercase">
+                        <span className="font-semibold">
                           {schoolDetails?.board_affiliation ||
                             schoolData?.boardAffiliation ||
                             "N/A"}
                         </span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="font-semibold text-foreground">
-                          Establishment Year:
+
+                      <div className="flex flex-col space-y-1">
+                        <span className="text-muted-foreground">
+                          Establishment Year
                         </span>
-                        <span>
+                        <span className="font-semibold">
                           {schoolDetails?.establishment_year ||
                             schoolData?.establishmentYear ||
                             "N/A"}
@@ -427,9 +429,6 @@ export function SchoolAdminDashboard() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <p className="text-sm font-semibold text-foreground mb-2">
-                        Contact Details
-                      </p>
                       <div className="space-y-3">
                         <div>
                           <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
@@ -457,43 +456,41 @@ export function SchoolAdminDashboard() {
                     </div>
 
                     <div className="pt-4 border-t">
-                      <p className="text-sm font-semibold text-foreground mb-2">
-                        Address
-                      </p>
-                      <div className="space-y-2">
-                        <div>
-                          <p className="text-xs font-semibold text-muted-foreground mb-1">
-                            Full Address:
-                          </p>
-                          <p className="text-sm">
+                      <div className="space-y-4">
+                        <div className="flex flex-col text-sm">
+                          <span className="text-muted-foreground">Address</span>
+                          <span className="font-semibold">
                             {schoolDetails?.address || "N/A"}
-                          </p>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="font-semibold text-foreground">
-                            City:
-                          </span>
-                          <span>
-                            {schoolDetails?.city || schoolData?.city || "N/A"}
                           </span>
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="font-semibold text-foreground">
-                            State:
-                          </span>
-                          <span>
-                            {schoolDetails?.state || schoolData?.state || "N/A"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="font-semibold text-foreground">
-                            Pincode:
-                          </span>
-                          <span>
-                            {schoolDetails?.pincode ||
-                              schoolData?.pincode ||
-                              "N/A"}
-                          </span>
+
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="flex flex-col space-y-1">
+                            <span className="text-muted-foreground">City</span>
+                            <span className="font-semibold">
+                              {schoolDetails?.city || schoolData?.city || "N/A"}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-col space-y-1">
+                            <span className="text-muted-foreground">State</span>
+                            <span className="font-semibold">
+                              {schoolDetails?.state ||
+                                schoolData?.state ||
+                                "N/A"}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-col space-y-1">
+                            <span className="text-muted-foreground">
+                              Pincode
+                            </span>
+                            <span className="font-semibold">
+                              {schoolDetails?.pincode ||
+                                schoolData?.pincode ||
+                                "N/A"}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>

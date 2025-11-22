@@ -17,6 +17,7 @@ export function Revision() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Mock saved revision topics
   const savedTopics = [
@@ -96,6 +97,33 @@ export function Revision() {
     const file = event.target.files?.[0];
     if (file && file.type === "application/pdf") {
       setUploadedFile(file);
+    } else if (file) {
+      alert("Please upload a PDF file only.");
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile && droppedFile.type === "application/pdf") {
+      setUploadedFile(droppedFile);
+    } else if (droppedFile) {
+      alert("Please drop a PDF file only.");
     }
   };
 
@@ -175,23 +203,42 @@ export function Revision() {
                 </p>
 
                 {!uploadedFile ? (
-                  <label
-                    htmlFor="pdf-upload"
-                    className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-border rounded-xl cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors"
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                      isDragging
+                        ? "border-primary bg-primary/10 scale-[1.02]"
+                        : "border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50"
+                    }`}
                   >
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                      <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
-                        <Upload className="w-6 h-6 text-primary" />
+                    <label
+                      htmlFor="pdf-upload"
+                      className="flex flex-col items-center justify-center space-y-3 w-full h-full cursor-pointer"
+                    >
+                      <div
+                        className={`w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center transition-transform ${
+                          isDragging ? "scale-110" : ""
+                        }`}
+                      >
+                        <Upload
+                          className={`w-6 h-6 transition-colors ${
+                            isDragging ? "text-primary" : "text-primary"
+                          }`}
+                        />
                       </div>
                       <div className="text-center">
                         <p className="font-medium text-gray-800">
-                          Upload PDF Chapter
+                          {isDragging
+                            ? "Drop your PDF here"
+                            : "Upload PDF Chapter"}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Click to browse or drag and drop
                         </p>
                       </div>
-                    </div>
+                    </label>
                     <input
                       id="pdf-upload"
                       type="file"
@@ -199,7 +246,7 @@ export function Revision() {
                       accept="application/pdf"
                       onChange={handleFileUpload}
                     />
-                  </label>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200">

@@ -45,19 +45,37 @@ export default function PdfQnAUploader({ role }: Props) {
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragging(false);
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set dragging to false if we're leaving the drop zone
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (
+      x < rect.left ||
+      x > rect.right ||
+      y < rect.top ||
+      y > rect.bottom
+    ) {
+      setIsDragging(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
+
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile && droppedFile.type === "application/pdf") {
       setFile(droppedFile);
+    } else if (droppedFile) {
+      alert("Please drop a PDF file only.");
     }
   };
 
@@ -168,7 +186,7 @@ export default function PdfQnAUploader({ role }: Props) {
                 onDrop={handleDrop}
                 className={`border-2 border-dashed rounded-xl p-8 transition-all ${
                   isDragging
-                    ? "border-primary bg-primary"
+                    ? "border-primary bg-primary/10 scale-[1.02] shadow-lg"
                     : "border-border hover:border-primary/50"
                 }`}
               >
