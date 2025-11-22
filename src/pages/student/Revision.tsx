@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -7,132 +7,168 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Upload, FileText, Sparkles, CheckCircle2, Star } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  Sparkles,
+  CheckCircle2,
+  Star,
+  Loader2,
+} from "lucide-react";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { Progress } from "../../components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { PageHeader } from "../../components/PageHeader";
+import { useAuth } from "../../contexts/AuthContext";
+import apiClient from "../../services/apiClient";
 
 export function Revision() {
   const navigate = useNavigate();
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const { userData } = useAuth();
+  const [selectedMaterialId, setSelectedMaterialId] = useState<string>("");
+  const [selectedMaterial, setSelectedMaterial] = useState<any | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
-  // Mock saved revision topics
-  const savedTopics = [
-    {
-      id: 1,
-      title: "Introduction to Algebra",
-      subject: "Mathematics",
-      chapter: "Chapter 1",
-      addedDate: "Nov 20, 2025",
-    },
-    {
-      id: 2,
-      title: "Linear Equations",
-      subject: "Mathematics",
-      chapter: "Chapter 2",
-      addedDate: "Nov 18, 2025",
-    },
-    {
-      id: 3,
-      title: "Laws of Motion",
-      subject: "Physics",
-      chapter: "Chapter 3",
-      addedDate: "Nov 15, 2025",
-    },
-  ];
+  const [revisions, setRevisions] = useState<any[]>([]);
+  const [loadingRevisions, setLoadingRevisions] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock AI-generated summary
-  const summaryPoints = [
-    {
-      title: "Key Concepts",
-      points: [
-        "Algebra uses letters and symbols to represent numbers and quantities",
-        "Variables represent unknown or changing values (x, y, z)",
-        "Constants are fixed values that don't change",
-        "Expressions combine variables, constants, and operators",
-      ],
-    },
-    {
-      title: "Important Formulas",
-      points: [
-        "Linear equation: ax + b = c",
-        "Solving for x: x = (c - b) / a",
-        "Distributive property: a(b + c) = ab + ac",
-        "Combining like terms: 3x + 2x = 5x",
-      ],
-    },
-    {
-      title: "Problem-Solving Steps",
-      points: [
-        "Identify the unknown variable",
-        "Set up the equation based on given information",
-        "Isolate the variable by performing inverse operations",
-        "Check your solution by substituting back",
-      ],
-    },
-    {
-      title: "Common Mistakes to Avoid",
-      points: [
-        "Forgetting to apply operations to both sides of equation",
-        "Mixing up addition and multiplication operations",
-        "Not simplifying expressions completely",
-        "Skipping the verification step",
-      ],
-    },
-    {
-      title: "Practice Tips",
-      points: [
-        "Start with simple equations and gradually increase difficulty",
-        "Always show your work step by step",
-        "Practice daily for 30 minutes to build confidence",
-        "Use real-world examples to understand applications",
-      ],
-    },
-  ];
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+  const [materialsError, setMaterialsError] = useState<string | null>(null);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type === "application/pdf") {
-      setUploadedFile(file);
-    } else if (file) {
-      alert("Please upload a PDF file only.");
+  const [generatedSummary, setGeneratedSummary] = useState<any | null>(null);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  // Fetch revisions and materials when component mounts
+  useEffect(() => {
+    if (userData?.id) {
+      fetchRevisions();
+      fetchMaterials();
+    }
+  }, [userData?.id]);
+
+  const fetchRevisions = async () => {
+    if (!userData?.id) return;
+    setLoadingRevisions(true);
+    setError(null);
+    try {
+      const response = await apiClient.getStudentRevisions(userData.id);
+      // Handle both array and single object responses
+      if (Array.isArray(response)) {
+        setRevisions(response);
+      } else if (response && typeof response === "object") {
+        // If it's a single revision object, wrap it in an array
+        setRevisions([response]);
+      } else {
+        setRevisions([]);
+      }
+    } catch (err: any) {
+      console.error("Error fetching revisions:", err);
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to fetch revisions. Please try again."
+      );
+    } finally {
+      setLoadingRevisions(false);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.type === "application/pdf") {
-      setUploadedFile(droppedFile);
-    } else if (droppedFile) {
-      alert("Please drop a PDF file only.");
+  const fetchMaterials = async () => {
+    if (!userData?.id) return;
+    setLoadingMaterials(true);
+    setMaterialsError(null);
+    try {
+      const response = await apiClient.getStudentClassMaterials(userData.id);
+      setMaterials(
+        Array.isArray(response?.materials) ? response.materials : []
+      );
+    } catch (err: any) {
+      console.error("Error fetching materials:", err);
+      setMaterialsError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to fetch materials. Please try again."
+      );
+    } finally {
+      setLoadingMaterials(false);
     }
   };
 
-  const handleProcessPDF = () => {
+  const handleMaterialSelect = (materialId: string) => {
+    setSelectedMaterialId(materialId);
+    const material = materials.find((m) => m.id === materialId);
+    setSelectedMaterial(material || null);
+    setShowSummary(false);
+    setGeneratedSummary(null);
+    setSummaryError(null);
+  };
+
+  const handleProcessPDF = async () => {
+    if (!selectedMaterialId || !userData?.id) return;
+
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
+    setSummaryError(null);
+    setGeneratedSummary(null);
+
+    try {
+      // Step 1: Generate pointers
+      const pointersResponse = await apiClient.generatePointers(
+        selectedMaterialId
+      );
+
+      if (!pointersResponse.success) {
+        throw new Error(
+          pointersResponse.error || "Failed to generate pointers"
+        );
+      }
+
+      // Set the generated summary
+      setGeneratedSummary(pointersResponse);
       setShowSummary(true);
-    }, 2000);
+
+      // Step 2: Save revision
+      const revisionData = {
+        student_id: userData.id,
+        subject: pointersResponse.subject || "",
+        class_level: pointersResponse.class_level || "",
+        chapter: pointersResponse.chapter || "",
+        pointers: pointersResponse.pointers || [],
+        total_pointers: pointersResponse.total_pointers || 0,
+      };
+
+      await apiClient.saveRevision(revisionData);
+
+      // Refresh revisions list
+      await fetchRevisions();
+    } catch (err: any) {
+      console.error("Error generating summary:", err);
+      setSummaryError(
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Failed to generate summary. Please try again."
+      );
+      setShowSummary(false);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (!bytes || bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   return (
@@ -151,36 +187,43 @@ export function Revision() {
           <div className="md:col-span-1 space-y-6">
             <Card className="shadow-lg border-0">
               <CardHeader>
-                <CardTitle>Saved Topics</CardTitle>
+                <CardTitle>History</CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[600px] pr-4">
-                  <div className="space-y-3">
-                    {savedTopics.map((topic) => (
-                      <button
-                        key={topic.id}
-                        className="w-full text-left p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors group"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                            <span className="text-xs text-muted-foreground">
-                              {topic.chapter}
-                            </span>
-                          </div>
-                        </div>
-                        <h4 className="font-medium mb-1 group-hover:text-primary transition-colors">
-                          {topic.title}
-                        </h4>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {topic.subject}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {topic.addedDate}
-                        </p>
-                      </button>
-                    ))}
+                {error && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-600">{error}</p>
                   </div>
+                )}
+                <ScrollArea className="h-[600px] pr-4">
+                  {loadingRevisions ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span className="ml-2 text-muted-foreground">
+                        Loading revisions...
+                      </span>
+                    </div>
+                  ) : revisions.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      No revisions found
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {revisions.map((revision, index) => (
+                        <button
+                          key={index}
+                          className="w-full text-left p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors group"
+                        >
+                          <h4 className="font-medium mb-1 group-hover:text-primary transition-colors">
+                            {revision.chapter || "Untitled Chapter"}
+                          </h4>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {revision.subject || "No subject"}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </ScrollArea>
               </CardContent>
             </Card>
@@ -198,75 +241,127 @@ export function Revision() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Upload a PDF chapter or notes to get an AI-generated summary
-                  with key points, formulas, and study tips.
+                  Select a study material from your class notes to get an
+                  AI-generated summary with key points, formulas, and study
+                  tips.
                 </p>
 
-                {!uploadedFile ? (
-                  <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
-                      isDragging
-                        ? "border-primary bg-primary/10 scale-[1.02]"
-                        : "border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/50"
-                    }`}
-                  >
-                    <label
-                      htmlFor="pdf-upload"
-                      className="flex flex-col items-center justify-center space-y-3 w-full h-full cursor-pointer"
-                    >
-                      <div
-                        className={`w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center transition-transform ${
-                          isDragging ? "scale-110" : ""
-                        }`}
-                      >
-                        <Upload
-                          className={`w-6 h-6 transition-colors ${
-                            isDragging ? "text-primary" : "text-primary"
-                          }`}
-                        />
-                      </div>
-                      <div className="text-center">
-                        <p className="font-medium text-gray-800">
-                          {isDragging
-                            ? "Drop your PDF here"
-                            : "Upload PDF Chapter"}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Click to browse or drag and drop
-                        </p>
-                      </div>
-                    </label>
-                    <input
-                      id="pdf-upload"
-                      type="file"
-                      className="hidden"
-                      accept="application/pdf"
-                      onChange={handleFileUpload}
-                    />
+                {materialsError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-600">{materialsError}</p>
                   </div>
-                ) : (
+                )}
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Select Material *
+                  </label>
+                  <Select
+                    value={selectedMaterialId}
+                    onValueChange={handleMaterialSelect}
+                    disabled={loadingMaterials}
+                  >
+                    <SelectTrigger
+                      className="w-full"
+                      style={{
+                        height: "40px",
+                        minHeight: "30px",
+                        marginTop: 10,
+                      }}
+                    >
+                      <SelectValue placeholder="Choose a material from your class notes">
+                        {selectedMaterial && (
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-primary shrink-0" />
+                            <span className="truncate">
+                              {selectedMaterial.title || "Untitled"}
+                            </span>
+                          </div>
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {loadingMaterials ? (
+                        <SelectItem
+                          value="loading"
+                          disabled
+                          className="h-12 py-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                            <span>Loading materials...</span>
+                          </div>
+                        </SelectItem>
+                      ) : materials.length === 0 ? (
+                        <SelectItem value="none" disabled className="h-12 py-3">
+                          No materials available
+                        </SelectItem>
+                      ) : (
+                        materials.map((material) => (
+                          <SelectItem
+                            key={material.id}
+                            value={material.id}
+                            className="h-12 py-3"
+                          >
+                            <div className="flex items-center gap-3 w-full">
+                              <FileText className="w-4 h-4 text-primary shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate text-sm">
+                                  {material.title || "Untitled"}
+                                </p>
+                                {material.subject_name && (
+                                  <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                    {material.subject_name}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedMaterial && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200">
-                      <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                      <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
                         <FileText className="w-5 h-5 text-red-600" />
                       </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-blue-900">
-                          {uploadedFile.name}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-blue-900 truncate">
+                          {selectedMaterial.title || "Untitled"}
                         </p>
-                        <p className="text-sm text-blue-700">
-                          {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
+                        <div className="flex items-center gap-2 text-sm text-blue-700">
+                          {selectedMaterial.subject_name && (
+                            <span>{selectedMaterial.subject_name}</span>
+                          )}
+                          {selectedMaterial.file_type && (
+                            <>
+                              <span>•</span>
+                              <span>{selectedMaterial.file_type}</span>
+                            </>
+                          )}
+                          {selectedMaterial.file_size && (
+                            <>
+                              <span>•</span>
+                              <span>
+                                {formatFileSize(selectedMaterial.file_size)}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setUploadedFile(null);
+                          setSelectedMaterialId("");
+                          setSelectedMaterial(null);
                           setShowSummary(false);
+                          setGeneratedSummary(null);
+                          setSummaryError(null);
                         }}
                       >
                         Remove
@@ -276,12 +371,12 @@ export function Revision() {
                     {!showSummary && (
                       <Button
                         onClick={handleProcessPDF}
-                        disabled={isProcessing}
+                        disabled={isProcessing || !selectedMaterialId}
                         className="w-full gap-2"
                       >
                         {isProcessing ? (
                           <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <Loader2 className="w-4 h-4 animate-spin" />
                             Generating Summary...
                           </>
                         ) : (
@@ -318,58 +413,78 @@ export function Revision() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[500px] pr-4">
-                    <div className="space-y-6">
-                      {summaryPoints.map((section, index) => (
-                        <div key={index} className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                              <span className="text-sm font-bold text-primary">
-                                {index + 1}
-                              </span>
+                  {summaryError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                      <p className="text-sm text-red-600">{summaryError}</p>
+                    </div>
+                  )}
+                  {generatedSummary && (
+                    <ScrollArea className="h-[500px] pr-4">
+                      <div className="space-y-6">
+                        {/* Chapter Name */}
+                        <div className="space-y-3">
+                          <h2 className="text-2xl font-bold text-gray-800">
+                            {generatedSummary.chapter || "Untitled Chapter"}
+                          </h2>
+                          {(generatedSummary.subject ||
+                            generatedSummary.class_level) && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              {generatedSummary.subject && (
+                                <span>{generatedSummary.subject}</span>
+                              )}
+                              {generatedSummary.subject &&
+                                generatedSummary.class_level && <span>•</span>}
+                              {generatedSummary.class_level && (
+                                <span>
+                                  Class {generatedSummary.class_level}
+                                </span>
+                              )}
                             </div>
-                            <h3 className="text-gray-800">{section.title}</h3>
-                          </div>
-                          <ul className="space-y-2 ml-10">
-                            {section.points.map((point, pointIndex) => (
-                              <li
-                                key={pointIndex}
-                                className="flex items-start gap-3 text-gray-700"
-                              >
-                                <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 shrink-0" />
-                                <span>{point}</span>
-                              </li>
-                            ))}
-                          </ul>
+                          )}
                         </div>
-                      ))}
 
-                      {/* Quick Actions */}
-                      <div className="pt-6 border-t space-y-3">
-                        <h4 className="font-medium text-gray-800">
-                          Quick Actions
-                        </h4>
-                        <div className="grid grid-cols-2 gap-3">
-                          <Button variant="outline" className="gap-2">
-                            <FileText className="w-4 h-4" />
-                            Export as PDF
-                          </Button>
-                          <Button variant="outline" className="gap-2">
-                            <Sparkles className="w-4 h-4" />
-                            Create Flashcards
-                          </Button>
-                          <Button variant="outline" className="gap-2">
-                            <CheckCircle2 className="w-4 h-4" />
-                            Generate Quiz
-                          </Button>
-                          <Button variant="outline" className="gap-2">
-                            <Upload className="w-4 h-4" />
-                            Share Summary
-                          </Button>
+                        {/* Pointers */}
+                        <div className="space-y-3">
+                          <h3 className="text-lg font-semibold text-gray-800">
+                            Key Pointers
+                            {generatedSummary.total_pointers !== undefined && (
+                              <span className="text-sm font-normal text-muted-foreground ml-2">
+                                ({generatedSummary.total_pointers} points)
+                              </span>
+                            )}
+                          </h3>
+                          {generatedSummary.pointers &&
+                          generatedSummary.pointers.length > 0 ? (
+                            <ul className="space-y-3">
+                              {generatedSummary.pointers.map(
+                                (pointer: string, index: number) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-start gap-3 text-gray-700"
+                                  >
+                                    <span className="w-2 h-2 bg-primary rounded-full mt-2 shrink-0" />
+                                    <span className="flex-1">{pointer}</span>
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          ) : (
+                            <p className="text-muted-foreground">
+                              No pointers generated yet.
+                            </p>
+                          )}
                         </div>
                       </div>
+                    </ScrollArea>
+                  )}
+                  {!generatedSummary && !summaryError && (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span className="ml-2 text-muted-foreground">
+                        Generating summary...
+                      </span>
                     </div>
-                  </ScrollArea>
+                  )}
                 </CardContent>
               </Card>
             )}
