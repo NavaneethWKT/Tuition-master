@@ -124,6 +124,25 @@ export function ClassNotes() {
     });
   };
 
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+      });
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = filename;
+      link.click();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
   const subjectColors: Record<string, { bg: string; text: string }> = {
     Mathematics: { bg: "bg-blue-100", text: "text-blue-700" },
     Physics: { bg: "bg-purple-100", text: "text-purple-700" },
@@ -304,19 +323,17 @@ export function ClassNotes() {
                         className="flex-1 gap-2"
                         onClick={() => {
                           if (note.file_url) {
-                            const link = document.createElement("a");
-                            link.href = note.file_url;
-                            link.download = note.title || "download";
-                            link.target = "_blank";
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
+                            handleDownload(
+                              note.file_url,
+                              note.title || "download.pdf"
+                            );
                           }
                         }}
                       >
                         <Download className="w-4 h-4" />
                         Download
                       </Button>
+
                       <Button
                         className="flex-1 gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
                         onClick={() => {
