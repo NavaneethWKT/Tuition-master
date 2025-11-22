@@ -24,7 +24,15 @@ import {
   LogOut,
   PlusCircle,
   Loader2,
+  X,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { StatCard } from "../../components/StatCard";
 import { useAuth } from "../../contexts/AuthContext";
@@ -39,11 +47,25 @@ export function TeacherDashboard() {
   const [statistics, setStatistics] = useState<any>(null);
   const [classes, setClasses] = useState<any[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState({
     statistics: false,
     classes: false,
     materials: false,
+    subjects: false,
   });
+
+  // State for upload form
+  const [uploadForm, setUploadForm] = useState({
+    file: null as File | null,
+    selectedClass: "",
+    selectedSubject: "",
+    title: "",
+    description: "",
+    showForm: false,
+  });
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Get teacher ID from userData
   const teacherId = userData?.id;
@@ -55,9 +77,9 @@ export function TeacherDashboard() {
     }
   }, [teacherId]);
 
-  // Fetch classes when overview tab is active
+  // Fetch classes when overview tab is active OR when materials tab is active (for upload form)
   useEffect(() => {
-    if (teacherId && activeTab === "overview") {
+    if (teacherId && (activeTab === "overview" || activeTab === "materials")) {
       fetchClasses();
     }
   }, [teacherId, activeTab]);
@@ -66,8 +88,16 @@ export function TeacherDashboard() {
   useEffect(() => {
     if (teacherId && activeTab === "materials") {
       fetchMaterials();
+      fetchSubjects();
     }
   }, [teacherId, activeTab]);
+
+  // Fetch subjects when upload form is shown
+  useEffect(() => {
+    if (teacherId && uploadForm.showForm && subjects.length === 0) {
+      fetchSubjects();
+    }
+  }, [teacherId, uploadForm.showForm]);
 
   // Fetch teacher statistics
   const fetchStatistics = async () => {
@@ -111,12 +141,128 @@ export function TeacherDashboard() {
     }
   };
 
+  // Fetch teacher subjects
+  const fetchSubjects = async () => {
+    if (!teacherId) return;
+    setLoading((prev) => ({ ...prev, subjects: true }));
+    try {
+      const response = await apiClient.getTeacherSubjects(teacherId);
+      setSubjects(Array.isArray(response?.subjects) ? response.subjects : []);
+    } catch (error) {
+      console.error("Error fetching teacher subjects:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, subjects: false }));
+    }
+  };
+
   const handleViewMaterial = (url: string) => {
     window.open(url, "_blank");
   };
 
   const handleDeleteMaterial = (index: number) => {
     setMaterials((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadForm({
+        ...uploadForm,
+        file,
+        title: file.name.replace(/\.[^/.]+$/, ""), // Use filename without extension as default title
+        showForm: true,
+      });
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setUploadForm({
+      file: null,
+      selectedClass: "",
+      selectedSubject: "",
+      title: "",
+      description: "",
+      showForm: false,
+    });
+  };
+
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = (reader.result as string).split(",")[1]; // Remove data:type;base64, prefix
+        resolve(base64String);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleSubmitMaterial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUploadError(null);
+
+    if (
+      !uploadForm.file ||
+      !uploadForm.selectedClass ||
+      !uploadForm.selectedSubject ||
+      !uploadForm.title ||
+      !teacherId
+    ) {
+      setUploadError("Please fill all required fields");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Convert file to base64
+      const fileUrl = await fileToBase64(uploadForm.file);
+
+      // Get filename without extension for the filename field
+      const filename = uploadForm.file.name.replace(/\.[^/.]+$/, "");
+
+      // Prepare request body
+      const requestBody = {
+        fileUrl: fileUrl,
+        filename: filename,
+        folder: "tuition_master/documents",
+        class_id: uploadForm.selectedClass,
+        subject_id: uploadForm.selectedSubject,
+        teacher_id: teacherId,
+        title: uploadForm.title,
+        description: uploadForm.description || "",
+      };
+
+      // Call upload API
+      await apiClient.uploadDocument(requestBody);
+
+      // Refresh materials list after successful upload
+      await fetchMaterials();
+
+      // Reset form
+      handleRemoveFile();
+
+      alert("Material uploaded successfully!");
+    } catch (error: any) {
+      console.error("Error uploading material:", error);
+      setUploadError(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to upload material. Please try again."
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (!bytes) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
   return (
     <div className="min-h-screen bg-paper">
@@ -257,10 +403,233 @@ export function TeacherDashboard() {
                         </p>
                       </div>
                       <div className="flex gap-3">
-                        <Button variant="outline">Browse Files</Button>
+                        <input
+                          id="file-upload"
+                          type="file"
+                          className="hidden"
+                          onChange={handleFileSelect}
+                          accept=".pdf,.doc,.docx,.ppt,.pptx,.txt"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            document.getElementById("file-upload")?.click()
+                          }
+                        >
+                          Browse Files
+                        </Button>
                       </div>
                     </div>
                   </div>
+
+                  {/* Upload Form - Shows when file is selected */}
+                  {uploadForm.showForm && uploadForm.file && (
+                    <Card className="border-2 border-primary/20 shadow-md">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle>Upload Material Details</CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleRemoveFile}
+                            disabled={uploading}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        {uploadError && (
+                          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                            <p className="text-sm text-red-600">
+                              {uploadError}
+                            </p>
+                          </div>
+                        )}
+                        <form
+                          onSubmit={handleSubmitMaterial}
+                          className="space-y-4"
+                        >
+                          {/* Class Dropdown */}
+                          <div className="space-y-2">
+                            <Label htmlFor="class-select">Class *</Label>
+                            <Select
+                              value={uploadForm.selectedClass}
+                              onValueChange={(value) =>
+                                setUploadForm({
+                                  ...uploadForm,
+                                  selectedClass: value,
+                                })
+                              }
+                            >
+                              <SelectTrigger id="class-select">
+                                <SelectValue placeholder="Select a class" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {loading.classes ? (
+                                  <SelectItem value="loading" disabled>
+                                    Loading classes...
+                                  </SelectItem>
+                                ) : classes.length === 0 ? (
+                                  <SelectItem value="none" disabled>
+                                    No classes available
+                                  </SelectItem>
+                                ) : (
+                                  classes.map((classItem) => (
+                                    <SelectItem
+                                      key={classItem.id}
+                                      value={classItem.id}
+                                    >
+                                      Grade {classItem.grade} - Section{" "}
+                                      {classItem.section}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Subject Dropdown */}
+                          <div className="space-y-2">
+                            <Label htmlFor="subject-select">Subject *</Label>
+                            <Select
+                              value={uploadForm.selectedSubject}
+                              onValueChange={(value) =>
+                                setUploadForm({
+                                  ...uploadForm,
+                                  selectedSubject: value,
+                                })
+                              }
+                            >
+                              <SelectTrigger id="subject-select">
+                                <SelectValue placeholder="Select a subject" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {loading.subjects ? (
+                                  <SelectItem value="loading" disabled>
+                                    Loading subjects...
+                                  </SelectItem>
+                                ) : subjects.length === 0 ? (
+                                  <SelectItem value="none" disabled>
+                                    No subjects available
+                                  </SelectItem>
+                                ) : (
+                                  subjects.map((subject: any) => (
+                                    <SelectItem
+                                      key={subject.subject_id}
+                                      value={subject.subject_id}
+                                    >
+                                      {subject.name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Title */}
+                          <div className="space-y-2">
+                            <Label htmlFor="material-title">Title *</Label>
+                            <Input
+                              id="material-title"
+                              placeholder="Enter material title"
+                              value={uploadForm.title}
+                              onChange={(e) =>
+                                setUploadForm({
+                                  ...uploadForm,
+                                  title: e.target.value,
+                                })
+                              }
+                              required
+                            />
+                          </div>
+
+                          {/* Description */}
+                          <div className="space-y-2">
+                            <Label htmlFor="material-description">
+                              Description (Optional)
+                            </Label>
+                            <Textarea
+                              id="material-description"
+                              placeholder="Enter material description"
+                              value={uploadForm.description}
+                              onChange={(e) =>
+                                setUploadForm({
+                                  ...uploadForm,
+                                  description: e.target.value,
+                                })
+                              }
+                              rows={3}
+                            />
+                          </div>
+
+                          {/* Attachment Preview */}
+                          <div className="space-y-2">
+                            <Label>Attachment</Label>
+                            <div className="border rounded-lg p-4 bg-muted/50">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                    <FileText className="w-5 h-5 text-primary" />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-sm">
+                                      {uploadForm.file.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {formatFileSize(uploadForm.file.size)} •{" "}
+                                      {uploadForm.file.type || "Unknown type"}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={handleRemoveFile}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Submit Button */}
+                          <div className="flex gap-3 pt-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={handleRemoveFile}
+                              className="flex-1"
+                              disabled={uploading}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="submit"
+                              disabled={
+                                uploading ||
+                                !uploadForm.selectedClass ||
+                                !uploadForm.selectedSubject ||
+                                !uploadForm.title ||
+                                !uploadForm.file
+                              }
+                              className="flex-1"
+                            >
+                              {uploading ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Uploading...
+                                </>
+                              ) : (
+                                "Upload Material"
+                              )}
+                            </Button>
+                          </div>
+                        </form>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Uploaded Materials List */}
                   <div className="space-y-3 mt-6">
@@ -334,9 +703,13 @@ export function TeacherDashboard() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() =>
-                                    handleViewMaterial(material.file_url)
-                                  }
+                                  onClick={async () => {
+                                    const resp = await apiClient.viewDocument(
+                                      material.public_id
+                                    );
+                                    console.log(JSON.stringify(resp));
+                                    handleViewMaterial(resp.url);
+                                  }}
                                 >
                                   View
                                 </Button>

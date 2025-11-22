@@ -145,6 +145,14 @@ class TuitionMasterApiClient {
     });
   }
 
+  // get teacher subjects
+  public async getTeacherSubjects(teacherId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/teacher/${teacherId}/subjects`,
+    });
+  }
+
   // get class students
   public async getClassStudents(classId: string): Promise<any> {
     return this.makeRequest<any>({
@@ -186,6 +194,21 @@ class TuitionMasterApiClient {
     return this.makeRequest<any>({
       method: "get",
       url: `/student/${studentId}/class-materials`,
+    });
+  }
+
+  // Document upload API
+  public async uploadDocument(data: any): Promise<any> {
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/documents/upload",
+      data: data,
+    });
+  }
+  public async viewDocument(publicId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/documents/url?public_id=${publicId}`,
     });
   }
 }
