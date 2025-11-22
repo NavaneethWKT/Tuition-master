@@ -1,19 +1,26 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { Label } from "./ui/label";
 import { Progress } from "./ui/progress";
 import {
-  Upload,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import {
   FileText,
   CheckCircle2,
   XCircle,
   Sparkles,
   Loader2,
-  FileCheck,
   Award,
-  Clock,
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import apiClient from "../services/apiClient";
 
 interface QnA {
   question: string;
@@ -26,12 +33,16 @@ interface Props {
 }
 
 export default function PdfQnAUploader({ role }: Props) {
+  const { userData } = useAuth();
   const [qna, setQna] = useState<QnA[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [file, setFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedMaterialId, setSelectedMaterialId] = useState<string>("");
+  const [selectedMaterial, setSelectedMaterial] = useState<any | null>(null);
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+  const [materialsError, setMaterialsError] = useState<string | null>(null);
+  const [studentId, setStudentId] = useState<string | null>(null);
   const [studentAnswers, setStudentAnswers] = useState<{
     [qId: string]: string;
   }>({});
@@ -43,56 +54,83 @@ export default function PdfQnAUploader({ role }: Props) {
   const isParent = role === "parent";
   const isStudent = role === "student";
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
+  // Fetch student ID for parent or use own ID for student
+  useEffect(() => {
+    if (isStudent && userData?.id) {
+      setStudentId(userData.id);
+    } else if (isParent && userData?.id) {
+      fetchParentStudent();
+    }
+  }, [role, userData?.id]);
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Only set dragging to false if we're leaving the drop zone
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    if (
-      x < rect.left ||
-      x > rect.right ||
-      y < rect.top ||
-      y > rect.bottom
-    ) {
-      setIsDragging(false);
+  // Fetch materials when studentId is available
+  useEffect(() => {
+    if (studentId) {
+      fetchMaterials();
+    }
+  }, [studentId]);
+
+  const fetchParentStudent = async () => {
+    if (!userData?.id) return;
+    try {
+      const response = await apiClient.getParentStudent(userData.id);
+      if (response?.id) {
+        setStudentId(response.id);
+      }
+    } catch (err: any) {
+      console.error("Error fetching parent's student:", err);
+      setMaterialsError(
+        "Failed to fetch student information. Please try again."
+      );
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.type === "application/pdf") {
-      setFile(droppedFile);
-    } else if (droppedFile) {
-      alert("Please drop a PDF file only.");
+  const fetchMaterials = async () => {
+    if (!studentId) return;
+    setLoadingMaterials(true);
+    setMaterialsError(null);
+    try {
+      const response = await apiClient.getStudentClassMaterials(studentId);
+      setMaterials(
+        Array.isArray(response?.materials) ? response.materials : []
+      );
+    } catch (err: any) {
+      console.error("Error fetching materials:", err);
+      setMaterialsError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to fetch materials. Please try again."
+      );
+    } finally {
+      setLoadingMaterials(false);
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile && selectedFile.type === "application/pdf") {
-      setFile(selectedFile);
-    }
+  const handleMaterialSelect = (materialId: string) => {
+    setSelectedMaterialId(materialId);
+    const material = materials.find((m) => m.id === materialId);
+    setSelectedMaterial(material || null);
+    // Reset QnA when material changes
+    setQna([]);
+    setStudentAnswers({});
+    setParentMarkings({});
   };
 
-  const uploadPdf = async (e: React.FormEvent) => {
+  const formatFileSize = (bytes: number) => {
+    if (!bytes || bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const generateQuestions = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!selectedMaterialId) return;
     setLoading(true);
     setUploadProgress(0);
 
-    // Simulate upload progress
+    // Simulate processing progress
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 90) {
@@ -103,30 +141,28 @@ export default function PdfQnAUploader({ role }: Props) {
       });
     }, 200);
 
-    const formData = new FormData();
-    formData.append("pdf", file);
-
     try {
-      const response = await fetch("/api/pdf-qna", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await apiClient.generateExamQuestions(
+        selectedMaterialId
+      );
 
-      if (response.ok) {
-        const data = await response.json();
-        setUploadProgress(100);
-        setTimeout(() => {
-          setQna(data.qna || []);
-          setLoading(false);
-          setUploadProgress(0);
-        }, 500);
-      } else {
-        alert("Upload failed. Please try again.");
+      // Handle response - adjust based on actual API response structure
+      // Assuming response contains questions array or qna array
+      const questions = response.questions || response.qna || [];
+
+      setUploadProgress(100);
+      setTimeout(() => {
+        setQna(questions);
         setLoading(false);
         setUploadProgress(0);
-      }
-    } catch (error) {
-      alert("An error occurred. Please try again.");
+      }, 500);
+    } catch (error: any) {
+      console.error("Error generating questions:", error);
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to generate questions. Please try again."
+      );
       setLoading(false);
       setUploadProgress(0);
     }
@@ -135,13 +171,11 @@ export default function PdfQnAUploader({ role }: Props) {
 
   const resetTest = () => {
     setQna([]);
-    setFile(null);
+    setSelectedMaterialId("");
+    setSelectedMaterial(null);
     setStudentAnswers({});
     setParentMarkings({});
     setUploadProgress(0);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   const getStats = () => {
@@ -167,7 +201,7 @@ export default function PdfQnAUploader({ role }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Upload Section */}
+      {/* Material Selection Section */}
       {qna.length === 0 && (
         <Card className="shadow-lg border-0">
           <CardHeader>
@@ -175,93 +209,132 @@ export default function PdfQnAUploader({ role }: Props) {
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
                 <FileText className="w-6 h-6 text-white" />
               </div>
-              Upload PDF to Generate Questions
+              Select Material to Generate Questions
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={uploadPdf} className="space-y-6">
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-xl p-8 transition-all ${
-                  isDragging
-                    ? "border-primary bg-primary/10 scale-[1.02] shadow-lg"
-                    : "border-border hover:border-primary/50"
-                }`}
-              >
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  <div
-                    className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-transform ${
-                      isDragging ? "scale-110" : ""
-                    } ${file ? "bg-green-100" : "bg-primary"}`}
-                  >
-                    {file ? (
-                      <FileCheck className="w-10 h-10 text-green-600" />
-                    ) : (
-                      <Upload className="w-10 h-10 text-white" />
-                    )}
-                  </div>
-                  <div className="text-center">
-                    {file ? (
-                      <>
-                        <p className="font-semibold text-gray-800 mb-1">
-                          {file.name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="font-medium text-gray-800 mb-1">
-                          Drag and drop your PDF here
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          or click to browse files
-                        </p>
-                      </>
-                    )}
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="application/pdf"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="pdf-upload"
-                  />
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      {file ? "Change File" : "Browse Files"}
-                    </Button>
-                    {file && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => {
-                          setFile(null);
-                          if (fileInputRef.current) {
-                            fileInputRef.current.value = "";
-                          }
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
+            <form onSubmit={generateQuestions} className="space-y-6">
+              {materialsError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-600">{materialsError}</p>
                 </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Select Material *</Label>
+                <Select
+                  value={selectedMaterialId}
+                  onValueChange={handleMaterialSelect}
+                  disabled={loadingMaterials}
+                >
+                  <SelectTrigger
+                    className="w-full"
+                    style={{
+                      height: "40px",
+                      minHeight: "30px",
+                      marginTop: 10,
+                    }}
+                  >
+                    <SelectValue placeholder="Choose a material from class notes">
+                      {selectedMaterial && (
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-primary shrink-0" />
+                          <span className="truncate">
+                            {selectedMaterial.title || "Untitled"}
+                          </span>
+                        </div>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {loadingMaterials ? (
+                      <SelectItem
+                        value="loading"
+                        disabled
+                        className="h-12 py-3"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                          <span>Loading materials...</span>
+                        </div>
+                      </SelectItem>
+                    ) : materials.length === 0 ? (
+                      <SelectItem value="none" disabled className="h-12 py-3">
+                        No materials available
+                      </SelectItem>
+                    ) : (
+                      materials.map((material) => (
+                        <SelectItem
+                          key={material.id}
+                          value={material.id}
+                          className="h-12 py-3"
+                        >
+                          <div className="flex items-center gap-3 w-full">
+                            <FileText className="w-4 h-4 text-primary shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate text-sm">
+                                {material.title || "Untitled"}
+                              </p>
+                              {material.subject_name && (
+                                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                  {material.subject_name}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
+
+              {selectedMaterial && (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200">
+                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-blue-900 truncate">
+                      {selectedMaterial.title || "Untitled"}
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-blue-700">
+                      {selectedMaterial.subject_name && (
+                        <span>{selectedMaterial.subject_name}</span>
+                      )}
+                      {selectedMaterial.subject_name &&
+                        selectedMaterial.file_type && <span>•</span>}
+                      {selectedMaterial.file_type && (
+                        <span>{selectedMaterial.file_type}</span>
+                      )}
+                      {selectedMaterial.file_type &&
+                        selectedMaterial.file_size && <span>•</span>}
+                      {selectedMaterial.file_size && (
+                        <span>
+                          {formatFileSize(selectedMaterial.file_size)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedMaterialId("");
+                      setSelectedMaterial(null);
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
 
               {loading && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-sm text-muted-foreground">
-                      Processing PDF...
+                      Generating questions...
                     </span>
                     <span className="text-sm font-medium">
                       {uploadProgress}%
@@ -274,7 +347,7 @@ export default function PdfQnAUploader({ role }: Props) {
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary"
-                disabled={loading || !file}
+                disabled={loading || !selectedMaterialId}
               >
                 {loading ? (
                   <>

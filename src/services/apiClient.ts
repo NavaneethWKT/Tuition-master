@@ -197,6 +197,36 @@ class TuitionMasterApiClient {
     });
   }
 
+  // get student revisions
+  public async getStudentRevisions(studentId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/revision/students/${studentId}/revisions`,
+    });
+  }
+
+  // generate revision pointers
+  public async generatePointers(studyMaterialId: string): Promise<any> {
+    console.log("studyMaterialId", studyMaterialId);
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/revision/pointers",
+      data: {
+        study_material_id: studyMaterialId,
+      },
+    });
+  }
+
+  // save revision
+  public async saveRevision(data: any): Promise<any> {
+    console.log("data - save revision", JSON.stringify(data));
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/revision/revisions",
+      data: data,
+    });
+  }
+
   // Document upload API
   public async uploadDocument(data: any): Promise<any> {
     return this.makeRequest<any>({
@@ -209,6 +239,18 @@ class TuitionMasterApiClient {
     return this.makeRequest<any>({
       method: "get",
       url: `/documents/url?public_id=${publicId}`,
+    });
+  }
+
+  // generate exam questions
+  public async generateExamQuestions(studyMaterialId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/exam/questions",
+      data: {
+        study_material_id: studyMaterialId,
+        num_questions: 10,
+      },
     });
   }
 }
