@@ -253,6 +253,15 @@ class TuitionMasterApiClient {
       },
     });
   }
+
+  // evaluate answers
+  public async evaluateAnswers(data: any[]): Promise<any> {
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/evaluation/answer",
+      data: data,
+    });
+  }
 }
 
 const getEnvVar = (key: string, defaultValue: string): string => {

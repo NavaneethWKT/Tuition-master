@@ -32,6 +32,7 @@ import {
   Trash2,
   Calendar,
   Clock,
+  BookOpen,
 } from "lucide-react";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { ActionCard } from "../../components/ActionCard";
@@ -383,6 +384,27 @@ export function ParentDashboard() {
                   Review your child's mock test answers and provide feedback
                 </p>
                 <Button className="w-full">Generate</Button>
+              </CardContent>
+            </Card>
+
+            {/* View Notes Card */}
+            <Card
+              className="shadow-lg border-0 hover:shadow-xl transition-shadow cursor-pointer"
+              onClick={() => navigate("/parent/class-notes")}
+            >
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>View Notes</CardTitle>
+                  <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <BookOpen className="w-6 h-6 text-indigo-600" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  View study materials and notes uploaded by teachers
+                </p>
+                <Button className="w-full">View Notes</Button>
               </CardContent>
             </Card>
           </div>

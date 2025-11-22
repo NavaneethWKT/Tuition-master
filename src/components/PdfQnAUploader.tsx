@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import {
   FileText,
   CheckCircle2,
@@ -18,6 +19,7 @@ import {
   Sparkles,
   Loader2,
   Award,
+  Send,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import apiClient from "../services/apiClient";
@@ -49,6 +51,16 @@ export default function PdfQnAUploader({ role }: Props) {
   const [parentMarkings, setParentMarkings] = useState<{
     [qId: string]: "right" | "wrong" | null;
   }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [evaluationResult, setEvaluationResult] = useState<{
+    open: boolean;
+    score: number | null;
+    loading: boolean;
+  }>({
+    open: false,
+    score: null,
+    loading: false,
+  });
 
   // Ensure role is properly typed
   const isParent = role === "parent";
@@ -182,6 +194,67 @@ export default function PdfQnAUploader({ role }: Props) {
     setStudentAnswers({});
     setParentMarkings({});
     setUploadProgress(0);
+    setEvaluationResult({
+      open: false,
+      score: null,
+      loading: false,
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (!isStudent || qna.length === 0) return;
+
+    // Check if all questions are answered
+    const allAnswered = qna.every((q) => {
+      const uniqueKey = q.id || `q-${qna.indexOf(q)}`;
+      return studentAnswers[uniqueKey]?.trim() !== "";
+    });
+
+    if (!allAnswered) {
+      alert("Please answer all questions before submitting.");
+      return;
+    }
+
+    // Build request body
+    const requestBody = qna.map((q) => {
+      const uniqueKey = q.id || `q-${qna.indexOf(q)}`;
+      return {
+        question: q.question,
+        answer: q.answer,
+        "user's answer": studentAnswers[uniqueKey] || "",
+      };
+    });
+
+    // Open modal with loading
+    setEvaluationResult({
+      open: true,
+      score: null,
+      loading: true,
+    });
+    setIsSubmitting(true);
+
+    try {
+      const response = await apiClient.evaluateAnswers(requestBody);
+      setEvaluationResult({
+        open: true,
+        score: response.average_score || 0,
+        loading: false,
+      });
+    } catch (error: any) {
+      console.error("Error evaluating answers:", error);
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to evaluate answers. Please try again."
+      );
+      setEvaluationResult({
+        open: false,
+        score: null,
+        loading: false,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getStats = () => {
@@ -193,7 +266,7 @@ export default function PdfQnAUploader({ role }: Props) {
       const correct = Object.values(parentMarkings).filter(
         (m) => m === "right"
       ).length;
-      return { total, marked, correct };
+      return { total, marked, correct, answered: undefined };
     } else {
       const total = qna.length;
       const answered = Object.values(studentAnswers).filter(
@@ -204,6 +277,7 @@ export default function PdfQnAUploader({ role }: Props) {
   };
 
   const stats = getStats();
+  const answeredCount = stats.answered ?? 0;
 
   return (
     <div className="space-y-6">
@@ -566,8 +640,90 @@ export default function PdfQnAUploader({ role }: Props) {
               </CardContent>
             </Card>
           )}
+
+          {/* Submit Button for Students */}
+          {isStudent && qna.length > 0 && (
+            <Card className="shadow-lg border-0">
+              <CardContent className="pt-6">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || answeredCount < stats.total}
+                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Submit Test
+                    </>
+                  )}
+                </Button>
+                {answeredCount < stats.total && (
+                  <p className="text-sm text-muted-foreground mt-2 text-center">
+                    Please answer all {stats.total} questions before submitting.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
+
+      {/* Evaluation Result Modal */}
+      <Dialog
+        open={evaluationResult.open}
+        onOpenChange={(open) => {
+          if (!evaluationResult.loading) {
+            setEvaluationResult({ ...evaluationResult, open });
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Test Evaluation</DialogTitle>
+          </DialogHeader>
+          <div className="py-6">
+            {evaluationResult.loading ? (
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                <p className="text-muted-foreground">
+                  Evaluating your answers...
+                </p>
+              </div>
+            ) : evaluationResult.score !== null ? (
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                  <Award className="w-10 h-10 text-white" />
+                </div>
+                <div className="text-center">
+                  <p className="text-4xl font-bold text-gray-800 mb-2">
+                    {evaluationResult.score}/10
+                  </p>
+                  <p className="text-muted-foreground">
+                    Great job! Keep up the good work.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => {
+                    setEvaluationResult({
+                      open: false,
+                      score: null,
+                      loading: false,
+                    });
+                  }}
+                  className="w-full"
+                >
+                  Close
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

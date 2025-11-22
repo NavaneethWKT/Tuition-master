@@ -17,6 +17,7 @@ import { Revision } from "./pages/student/Revision";
 import { TeacherClass } from "./pages/teacher/TeacherClass";
 import MockTest from "./pages/student/MockTest";
 import ParentMockTestPage from "./pages/parent/MockTestPage";
+import { ParentClassNotes } from "./pages/parent/ParentClassNotes";
 
 export default function App() {
   return (
@@ -102,6 +103,14 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["parent"]}>
                     <ParentDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/parent/class-notes"
+                element={
+                  <ProtectedRoute allowedRoles={["parent"]}>
+                    <ParentClassNotes />
                   </ProtectedRoute>
                 }
               />
