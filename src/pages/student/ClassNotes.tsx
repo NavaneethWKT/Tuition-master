@@ -24,6 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
 import { usePdf } from "../../contexts/PdfContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { PageHeader } from "../../components/PageHeader";
@@ -41,6 +47,17 @@ export function ClassNotes() {
   const [totalSubjects, setTotalSubjects] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // State for PDF viewer modal
+  const [pdfViewer, setPdfViewer] = useState<{
+    open: boolean;
+    url: string | null;
+    title: string | null;
+  }>({
+    open: false,
+    url: null,
+    title: null,
+  });
 
   useEffect(() => {
     if (userData?.id) {
@@ -267,7 +284,15 @@ export function ClassNotes() {
                         className="flex-1 gap-2"
                         onClick={() => {
                           if (note.file_url) {
-                            window.open(note.file_url, "_blank");
+                            // Clean up the URL (remove trailing ? if present)
+                            const cleanUrl = note.file_url.endsWith("?")
+                              ? note.file_url.slice(0, -1)
+                              : note.file_url;
+                            setPdfViewer({
+                              open: true,
+                              url: cleanUrl,
+                              title: note.title,
+                            });
                           }
                         }}
                       >
@@ -330,6 +355,45 @@ export function ClassNotes() {
           </Card>
         )}
       </main>
+
+      {/* PDF Viewer Modal */}
+      <Dialog
+        open={pdfViewer.open}
+        onOpenChange={(open) => setPdfViewer({ ...pdfViewer, open })}
+      >
+        <DialogContent className="max-w-6xl w-full h-[90vh] p-0 flex flex-col">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+            <div className="flex items-center justify-between">
+              <DialogTitle>{pdfViewer.title || "PDF Viewer"}</DialogTitle>
+              {pdfViewer.url && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(pdfViewer.url || "", "_blank")}
+                >
+                  Open in New Tab
+                </Button>
+              )}
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden bg-gray-100 relative">
+            {pdfViewer.url && (
+              <div className="w-full h-full flex flex-col">
+                {/* Use Google Docs viewer - handles CORS better */}
+                <iframe
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+                    pdfViewer.url
+                  )}&embedded=true`}
+                  className="flex-1 w-full border-0"
+                  title={pdfViewer.title || "PDF Document"}
+                  style={{ minHeight: "calc(90vh - 120px)" }}
+                  allow="fullscreen"
+                />
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

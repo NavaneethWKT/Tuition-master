@@ -350,15 +350,18 @@ export function AITutorChat() {
                 )}
               </Button>
             </div>
-            <div className="flex-1 overflow-hidden">
-              <div className="w-full h-full bg-white">
-                <embed
-                  src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
-                  type="application/pdf"
-                  className="w-full h-full"
+            <div className="flex-1 overflow-hidden bg-gray-100">
+              {pdfUrl && (
+                <iframe
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+                    pdfUrl
+                  )}&embedded=true`}
+                  className="w-full h-full border-0"
+                  title={pdfTitle || "PDF Document"}
                   style={{ minHeight: "100%" }}
+                  allow="fullscreen"
                 />
-              </div>
+              )}
             </div>
           </div>
         )}
