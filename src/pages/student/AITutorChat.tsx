@@ -330,7 +330,7 @@ export function AITutorChat() {
         {pdfUrl && (
           <div
             className={`${
-              isChatAreaVisible ? "flex-[0_0_35%]" : "flex-1"
+              isChatAreaVisible ? "flex-[0_0_40%]" : "flex-1"
             } border-r border-border bg-gray-50 flex flex-col min-w-0 transition-all duration-300`}
           >
             <div className="p-4 border-b border-border shrink-0 bg-white flex items-center justify-between">
@@ -370,7 +370,7 @@ export function AITutorChat() {
         {isChatAreaVisible ? (
           <div
             className={`${
-              pdfUrl ? "max-h-screen flex-[0_0_65%]" : "mx-auto px-6 max-w-4xl"
+              pdfUrl ? "max-h-screen flex-[0_0_60%]" : "mx-auto px-6 max-w-4xl"
             } flex flex-col min-w-0 transition-all duration-300 bg-paper relative`}
           >
             <div
