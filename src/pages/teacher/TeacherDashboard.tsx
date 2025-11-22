@@ -33,6 +33,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { StatCard } from "../../components/StatCard";
 import { useAuth } from "../../contexts/AuthContext";
@@ -66,6 +72,19 @@ export function TeacherDashboard() {
   });
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // State for PDF viewer modal
+  const [pdfViewer, setPdfViewer] = useState<{
+    open: boolean;
+    url: string | null;
+    title: string | null;
+    useGoogleViewer: boolean;
+  }>({
+    open: false,
+    url: null,
+    title: null,
+    useGoogleViewer: false,
+  });
 
   // Get teacher ID from userData
   const teacherId = userData?.id;
@@ -155,8 +174,19 @@ export function TeacherDashboard() {
     }
   };
 
-  const handleViewMaterial = (url: string) => {
-    window.open(url, "_blank");
+  const handleViewMaterial = (url: string, title?: string) => {
+    if (url) {
+      // Clean up the URL (remove trailing ? if present)
+      const cleanUrl = url.endsWith("?") ? url.slice(0, -1) : url;
+      setPdfViewer({
+        open: true,
+        url: cleanUrl,
+        title: title || "PDF Document",
+        useGoogleViewer: false, // Try direct first
+      });
+    } else {
+      alert("PDF URL not available");
+    }
   };
 
   const handleDeleteMaterial = (index: number) => {
@@ -699,16 +729,59 @@ export function TeacherDashboard() {
 
                             {/* Action Buttons */}
                             <div className="flex gap-2">
-                              {material.file_url && (
+                              {(material.file_url || material.public_id) && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={async () => {
-                                    const resp = await apiClient.viewDocument(
-                                      material.public_id
-                                    );
-                                    console.log(JSON.stringify(resp));
-                                    handleViewMaterial(resp.url);
+                                    try {
+                                      // If file_url exists directly in the response, use it
+                                      if (material.file_url) {
+                                        handleViewMaterial(
+                                          material.file_url,
+                                          material.title
+                                        );
+                                        return;
+                                      }
+
+                                      // Fallback: fetch the URL using public_id if file_url is not available
+                                      if (!material.public_id) {
+                                        alert(
+                                          "PDF not available - missing file URL and public_id"
+                                        );
+                                        return;
+                                      }
+
+                                      const resp = await apiClient.viewDocument(
+                                        material.public_id
+                                      );
+
+                                      // Handle different response structures
+                                      const pdfUrl =
+                                        resp?.url ||
+                                        resp?.data?.url ||
+                                        resp?.file_url ||
+                                        (typeof resp === "string"
+                                          ? resp
+                                          : null);
+
+                                      if (pdfUrl) {
+                                        handleViewMaterial(
+                                          pdfUrl,
+                                          material.title
+                                        );
+                                      } else {
+                                        alert(
+                                          "Failed to get PDF URL. Please check console for details."
+                                        );
+                                      }
+                                    } catch (error: any) {
+                                      alert(
+                                        error?.response?.data?.message ||
+                                          error?.message ||
+                                          "Failed to load PDF. Please try again."
+                                      );
+                                    }
                                   }}
                                 >
                                   View
@@ -734,6 +807,45 @@ export function TeacherDashboard() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* PDF Viewer Modal */}
+      <Dialog
+        open={pdfViewer.open}
+        onOpenChange={(open) => setPdfViewer({ ...pdfViewer, open })}
+      >
+        <DialogContent className="max-w-6xl w-full h-[90vh] p-0 flex flex-col">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+            <div className="flex items-center justify-between">
+              <DialogTitle>{pdfViewer.title || "PDF Viewer"}</DialogTitle>
+              {pdfViewer.url && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(pdfViewer.url || "", "_blank")}
+                >
+                  Open in New Tab
+                </Button>
+              )}
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden bg-gray-100 relative">
+            {pdfViewer.url && (
+              <div className="w-full h-full flex flex-col">
+                {/* Use Google Docs viewer - handles CORS better */}
+                <iframe
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+                    pdfViewer.url
+                  )}&embedded=true`}
+                  className="flex-1 w-full border-0"
+                  title={pdfViewer.title || "PDF Document"}
+                  style={{ minHeight: "calc(90vh - 120px)" }}
+                  allow="fullscreen"
+                />
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
