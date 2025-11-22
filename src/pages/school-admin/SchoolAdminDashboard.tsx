@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -9,6 +9,13 @@ import {
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import {
   Tabs,
   TabsContent,
@@ -26,6 +33,7 @@ import {
   Phone,
   Mail,
   GraduationCap,
+  Loader2,
 } from "lucide-react";
 import {
   Table,
@@ -38,11 +46,96 @@ import {
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { StatCard } from "../../components/StatCard";
 import { useSchool } from "../../contexts/SchoolContext";
+import { useAuth } from "../../contexts/AuthContext";
+import apiClient from "../../services/apiClient";
 
 export function SchoolAdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const { schoolData } = useSchool();
+  const { userData } = useAuth();
+
+  // State for API data
+  const [schoolDetails, setSchoolDetails] = useState<any>(null);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [loading, setLoading] = useState({
+    overview: false,
+    classes: false,
+    teachers: false,
+  });
+
+  // State for create class form
+  const [newClassForm, setNewClassForm] = useState({
+    grade: "",
+    section: "",
+    classTeacherId: "",
+  });
+
+  // Get school ID from userData
+  const schoolId = userData?.id;
+
+  // Fetch school details when component mounts (overview tab)
+  useEffect(() => {
+    if (schoolId && activeTab === "overview") {
+      fetchSchoolDetails();
+    }
+  }, [schoolId, activeTab]);
+
+  // Fetch classes when classes tab is active
+  useEffect(() => {
+    if (schoolId && activeTab === "classes") {
+      fetchClasses();
+      // Also fetch teachers so they're available for the dropdown
+      fetchTeachers();
+    }
+  }, [schoolId, activeTab]);
+
+  // Fetch teachers when teachers tab is active
+  useEffect(() => {
+    if (schoolId && activeTab === "teachers") {
+      fetchTeachers();
+    }
+  }, [schoolId, activeTab]);
+
+  const fetchSchoolDetails = async () => {
+    if (!schoolId) return;
+    setLoading((prev) => ({ ...prev, overview: true }));
+    try {
+      const response = await apiClient.getSchoolDetails(schoolId);
+      setSchoolDetails(response);
+    } catch (error) {
+      console.error("Error fetching school details:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, overview: false }));
+    }
+  };
+
+  const fetchClasses = async () => {
+    if (!schoolId) return;
+    setLoading((prev) => ({ ...prev, classes: true }));
+    try {
+      const response = await apiClient.getSchoolClasses(schoolId);
+      setClasses(Array.isArray(response) ? response : response.classes || []);
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, classes: false }));
+    }
+  };
+
+  const fetchTeachers = async () => {
+    if (!schoolId) return;
+    setLoading((prev) => ({ ...prev, teachers: true }));
+    try {
+      const response = await apiClient.getSchoolTeachers(schoolId);
+      setTeachers(Array.isArray(response) ? response : response.teachers || []);
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, teachers: false }));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-paper">
@@ -62,8 +155,10 @@ export function SchoolAdminDashboard() {
         <div className="w-3xl">
           <h1 className="text-gray-800 mb-2">
             Welcome back,{" "}
-            {schoolData?.adminName
-              ? schoolData.adminName.split(" ")[0]
+            {schoolDetails?.admin_name || schoolData?.adminName
+              ? (schoolDetails?.admin_name || schoolData.adminName).split(
+                  " "
+                )[0]
               : "Administrator"}
             !
           </h1>
@@ -78,20 +173,23 @@ export function SchoolAdminDashboard() {
         <div className="grid md:grid-cols-3 gap-6">
           <StatCard
             label="Total Students"
-            value="1,248"
+            value={
+              loading.overview
+                ? "..."
+                : schoolDetails?.total_students?.toLocaleString() || "0"
+            }
             icon={Users}
             gradient={true}
             gradientFrom="from-blue-500"
             gradientTo="to-blue-600"
-            subtitle={
-              <span className="flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" /> +12% this month
-              </span>
-            }
           />
           <StatCard
             label="Active Teachers"
-            value={42}
+            value={
+              loading.overview
+                ? "..."
+                : schoolDetails?.total_teachers?.toLocaleString() || "0"
+            }
             icon={UserPlus}
             gradient={true}
             gradientFrom="from-green-500"
@@ -100,12 +198,16 @@ export function SchoolAdminDashboard() {
           />
           <StatCard
             label="Total Classes"
-            value={28}
+            value={
+              loading.overview
+                ? "..."
+                : schoolDetails?.total_classes?.toLocaleString() || "0"
+            }
             icon={BookOpen}
             gradient={true}
             gradientFrom="from-orange-500"
             gradientTo="to-orange-600"
-            subtitle="Grades 1-12"
+            subtitle="All grades"
           />
         </div>
 
@@ -123,7 +225,14 @@ export function SchoolAdminDashboard() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            {schoolData ? (
+            {loading.overview ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <span className="ml-2 text-muted-foreground">
+                  Loading school details...
+                </span>
+              </div>
+            ) : (
               <div className="grid md:grid-cols-2 gap-6">
                 {/* School Basic Information */}
                 <Card className="shadow-lg border-0">
@@ -140,7 +249,7 @@ export function SchoolAdminDashboard() {
                         School Name
                       </p>
                       <p className="text-base">
-                        {schoolData.schoolName || "N/A"}
+                        {schoolDetails?.name || schoolData?.schoolName || "N/A"}
                       </p>
                     </div>
 
@@ -150,14 +259,20 @@ export function SchoolAdminDashboard() {
                           Board Affiliation:
                         </span>
                         <span className="uppercase">
-                          {schoolData.boardAffiliation || "N/A"}
+                          {schoolDetails?.board_affiliation ||
+                            schoolData?.boardAffiliation ||
+                            "N/A"}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="font-semibold text-foreground">
                           Establishment Year:
                         </span>
-                        <span>{schoolData.establishmentYear || "N/A"}</span>
+                        <span>
+                          {schoolDetails?.establishment_year ||
+                            schoolData?.establishmentYear ||
+                            "N/A"}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -183,7 +298,9 @@ export function SchoolAdminDashboard() {
                             Email Address
                           </p>
                           <p className="text-sm break-all">
-                            {schoolData.email || "N/A"}
+                            {schoolDetails?.contact_email ||
+                              schoolData?.email ||
+                              "N/A"}
                           </p>
                         </div>
                         <div>
@@ -191,7 +308,11 @@ export function SchoolAdminDashboard() {
                             <Phone className="w-4 h-4" />
                             Phone Number
                           </p>
-                          <p className="text-sm">{schoolData.phone || "N/A"}</p>
+                          <p className="text-sm">
+                            {schoolDetails?.contact_phone ||
+                              schoolData?.phone ||
+                              "N/A"}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -201,23 +322,39 @@ export function SchoolAdminDashboard() {
                         Address
                       </p>
                       <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground mb-1">
+                            Full Address:
+                          </p>
+                          <p className="text-sm">
+                            {schoolDetails?.address || "N/A"}
+                          </p>
+                        </div>
                         <div className="flex justify-between text-sm">
                           <span className="font-semibold text-foreground">
                             City:
                           </span>
-                          <span>{schoolData.city || "N/A"}</span>
+                          <span>
+                            {schoolDetails?.city || schoolData?.city || "N/A"}
+                          </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="font-semibold text-foreground">
                             State:
                           </span>
-                          <span>{schoolData.state || "N/A"}</span>
+                          <span>
+                            {schoolDetails?.state || schoolData?.state || "N/A"}
+                          </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="font-semibold text-foreground">
                             Pincode:
                           </span>
-                          <span>{schoolData.pincode || "N/A"}</span>
+                          <span>
+                            {schoolDetails?.pincode ||
+                              schoolData?.pincode ||
+                              "N/A"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -245,7 +382,9 @@ export function SchoolAdminDashboard() {
                               Name:
                             </p>
                             <p className="text-sm">
-                              {schoolData.principalName || "N/A"}
+                              {schoolDetails?.principal_name ||
+                                schoolData?.principalName ||
+                                "N/A"}
                             </p>
                           </div>
                           <div>
@@ -253,7 +392,9 @@ export function SchoolAdminDashboard() {
                               Email:
                             </p>
                             <p className="text-sm break-all">
-                              {schoolData.principalEmail || "N/A"}
+                              {schoolDetails?.principal_email ||
+                                schoolData?.principalEmail ||
+                                "N/A"}
                             </p>
                           </div>
                           <div>
@@ -261,7 +402,9 @@ export function SchoolAdminDashboard() {
                               Phone:
                             </p>
                             <p className="text-sm">
-                              {schoolData.principalPhone || "N/A"}
+                              {schoolDetails?.principal_phone ||
+                                schoolData?.principalPhone ||
+                                "N/A"}
                             </p>
                           </div>
                         </div>
@@ -278,7 +421,9 @@ export function SchoolAdminDashboard() {
                               Name:
                             </p>
                             <p className="text-sm">
-                              {schoolData.adminName || "N/A"}
+                              {schoolDetails?.admin_name ||
+                                schoolData?.adminName ||
+                                "N/A"}
                             </p>
                           </div>
                           <div>
@@ -286,7 +431,9 @@ export function SchoolAdminDashboard() {
                               Email:
                             </p>
                             <p className="text-sm break-all">
-                              {schoolData.adminEmail || "N/A"}
+                              {schoolDetails?.admin_email ||
+                                schoolData?.adminEmail ||
+                                "N/A"}
                             </p>
                           </div>
                           <div>
@@ -294,7 +441,9 @@ export function SchoolAdminDashboard() {
                               Phone:
                             </p>
                             <p className="text-sm">
-                              {schoolData.adminPhone || "N/A"}
+                              {schoolDetails?.admin_phone ||
+                                schoolData?.adminPhone ||
+                                "N/A"}
                             </p>
                           </div>
                         </div>
@@ -303,20 +452,6 @@ export function SchoolAdminDashboard() {
                   </CardContent>
                 </Card>
               </div>
-            ) : (
-              <Card className="shadow-lg border-0">
-                <CardContent className="text-center py-12">
-                  <p className="text-muted-foreground mb-4">
-                    No school information available
-                  </p>
-                  <Button
-                    onClick={() => navigate("/school-onboarding")}
-                    className="w-full md:w-auto"
-                  >
-                    Complete School Onboarding
-                  </Button>
-                </CardContent>
-              </Card>
             )}
           </TabsContent>
 
@@ -364,74 +499,53 @@ export function SchoolAdminDashboard() {
                 {/* Teachers List */}
                 <div>
                   <h4 className="font-medium mb-4">All Teachers</h4>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Subject</TableHead>
-                        <TableHead>Classes</TableHead>
-                        <TableHead>Students</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {[
-                        {
-                          name: "Dr. Rajesh Sharma",
-                          subject: "Mathematics",
-                          classes: 8,
-                          students: 156,
-                          status: "Active",
-                        },
-                        {
-                          name: "Prof. Priya Kumar",
-                          subject: "Physics",
-                          classes: 6,
-                          students: 124,
-                          status: "Active",
-                        },
-                        {
-                          name: "Ms. Anita Singh",
-                          subject: "Chemistry",
-                          classes: 7,
-                          students: 142,
-                          status: "Active",
-                        },
-                        {
-                          name: "Mr. Vikram Patel",
-                          subject: "Biology",
-                          classes: 5,
-                          students: 98,
-                          status: "Active",
-                        },
-                      ].map((teacher, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            {teacher.name}
-                          </TableCell>
-                          <TableCell>{teacher.subject}</TableCell>
-                          <TableCell>{teacher.classes}</TableCell>
-                          <TableCell>{teacher.students}</TableCell>
-                          <TableCell>
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                              {teacher.status}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button variant="ghost" size="sm">
-                                Edit
-                              </Button>
-                              <Button variant="ghost" size="sm">
-                                View
-                              </Button>
-                            </div>
-                          </TableCell>
+                  {loading.teachers ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span className="ml-2 text-muted-foreground">
+                        Loading teachers...
+                      </span>
+                    </div>
+                  ) : teachers.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      No teachers found
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Subject</TableHead>
+                          <TableHead>Classes</TableHead>
+                          <TableHead>Students</TableHead>
+                          <TableHead>Status</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {teachers.map((teacher, index) => (
+                          <TableRow key={teacher.id || index}>
+                            <TableCell className="font-medium">
+                              {teacher.name || teacher.full_name || "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {teacher.subject || teacher.subjects || "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {teacher.classes_count || teacher.classes || 0}
+                            </TableCell>
+                            <TableCell>
+                              {teacher.students_count || teacher.students || 0}
+                            </TableCell>
+                            <TableCell>
+                              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                                {teacher.status || "Active"}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -452,15 +566,68 @@ export function SchoolAdminDashboard() {
                   <div className="grid md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>Grade</Label>
-                      <Input placeholder="e.g., 10" />
+                      <Input
+                        placeholder="e.g., 10"
+                        type="number"
+                        value={newClassForm.grade}
+                        onChange={(e) =>
+                          setNewClassForm({
+                            ...newClassForm,
+                            grade: e.target.value,
+                          })
+                        }
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Section</Label>
-                      <Input placeholder="e.g., A" />
+                      <Input
+                        placeholder="e.g., A"
+                        value={newClassForm.section}
+                        onChange={(e) =>
+                          setNewClassForm({
+                            ...newClassForm,
+                            section: e.target.value.toUpperCase(),
+                          })
+                        }
+                        maxLength={1}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Class Teacher</Label>
-                      <Input placeholder="Select teacher" />
+                      <Select
+                        value={newClassForm.classTeacherId || "none"}
+                        onValueChange={(value) =>
+                          setNewClassForm({
+                            ...newClassForm,
+                            classTeacherId: value === "none" ? "" : value,
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select teacher (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Select</SelectItem>
+                          {loading.teachers ? (
+                            <SelectItem value="loading" disabled>
+                              Loading teachers...
+                            </SelectItem>
+                          ) : teachers.length === 0 ? (
+                            <SelectItem value="no-teachers" disabled>
+                              No teachers available
+                            </SelectItem>
+                          ) : (
+                            teachers.map((teacher) => (
+                              <SelectItem key={teacher.id} value={teacher.id}>
+                                {teacher.name ||
+                                  teacher.full_name ||
+                                  `Teacher ${teacher.id.substring(0, 8)}`}
+                                {teacher.subject ? ` - ${teacher.subject}` : ""}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <Button className="w-full">Create Class</Button>
@@ -469,88 +636,62 @@ export function SchoolAdminDashboard() {
                 {/* Classes Grid */}
                 <div>
                   <h4 className="font-medium mb-4">All Classes</h4>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {[
-                      {
-                        grade: "10",
-                        section: "A",
-                        students: 35,
-                        teacher: "Dr. Rajesh Sharma",
-                      },
-                      {
-                        grade: "10",
-                        section: "B",
-                        students: 32,
-                        teacher: "Prof. Priya Kumar",
-                      },
-                      {
-                        grade: "9",
-                        section: "A",
-                        students: 38,
-                        teacher: "Ms. Anita Singh",
-                      },
-                      {
-                        grade: "9",
-                        section: "B",
-                        students: 36,
-                        teacher: "Mr. Vikram Patel",
-                      },
-                      {
-                        grade: "8",
-                        section: "A",
-                        students: 40,
-                        teacher: "Dr. Rajesh Sharma",
-                      },
-                      {
-                        grade: "8",
-                        section: "B",
-                        students: 38,
-                        teacher: "Prof. Priya Kumar",
-                      },
-                    ].map((classItem, index) => (
-                      <Card
-                        key={index}
-                        className="border-2 hover:shadow-md transition-shadow"
-                      >
-                        <CardContent className="pt-6 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                              <span className="text-xl font-bold text-primary">
-                                {classItem.grade}
-                                {classItem.section}
-                              </span>
-                            </div>
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                              Active
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Students
-                            </p>
-                            <p className="font-semibold">
-                              {classItem.students}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              Class Teacher
-                            </p>
-                            <p className="text-sm font-medium">
-                              {classItem.teacher}
-                            </p>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
+                  {loading.classes ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span className="ml-2 text-muted-foreground">
+                        Loading classes...
+                      </span>
+                    </div>
+                  ) : classes.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      No classes found
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {classes.map((classItem) => {
+                        // Find teacher name if class_teacher_id exists
+                        const classTeacher = classItem.class_teacher_id
+                          ? teachers.find(
+                              (t) => t.id === classItem.class_teacher_id
+                            )
+                          : null;
+
+                        return (
+                          <Card
+                            key={classItem.id}
+                            className="border-2 hover:shadow-md transition-shadow"
                           >
-                            Manage
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                            <CardContent className="pt-6 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                                  <span className="text-xl font-bold text-primary">
+                                    {classItem.grade}
+                                    {classItem.section}
+                                  </span>
+                                </div>
+                                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                                  Active
+                                </span>
+                              </div>
+                              <div>
+                                <p className="text-sm text-muted-foreground">
+                                  Class Teacher
+                                </p>
+                                <p className="text-sm font-medium">
+                                  {classTeacher
+                                    ? classTeacher.name ||
+                                      classTeacher.full_name ||
+                                      "Assigned"
+                                    : "Not Assigned"}
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

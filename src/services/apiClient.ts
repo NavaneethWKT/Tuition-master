@@ -71,6 +71,25 @@ class TuitionMasterApiClient {
     });
   }
 
+  // School Admin APIs
+  public async getSchoolDetails(schoolId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/school-admin/schools/${schoolId}`,
+    });
+  }
+
+  public async getSchoolClasses(schoolId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/school-admin/schools/${schoolId}/classes`,
+    });
+  }
+
+  public async getSchoolTeachers(schoolId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/school-admin/schools/${schoolId}/teachers`,
   // register school
   public async registerSchool(data: any): Promise<any> {
     return this.makeRequest<any>({
