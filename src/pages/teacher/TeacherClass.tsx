@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -9,38 +9,88 @@ import {
 } from "../../components/ui/card";
 import { AddStudentDialog } from "../../components/AddStudentDialog";
 import { DashboardHeader } from "../../components/DashboardHeader";
-import { BookOpen, ArrowLeft } from "lucide-react";
+import { BookOpen, ArrowLeft, Loader2 } from "lucide-react";
+import apiClient from "../../services/apiClient";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function TeacherClass() {
-  const { id } = useParams();
+  const { id: classId } = useParams();
   const navigate = useNavigate();
+  const { userData } = useAuth();
 
-  const [students, setStudents] = useState([
-    {
-      name: "Ananya Gupta",
-      dob: "24/06/13",
-      contact: "1234567890",
-      email: "abc@gmail.com",
-      roll: 1,
-    },
-    {
-      name: "Rohit Singh",
-      dob: "24/06/13",
-      contact: "1234567890",
-      email: "abc@gmail.com",
-      roll: 2,
-    },
-    {
-      name: "Meera Nair",
-      dob: "24/06/13",
-      contact: "1234567890",
-      email: "abc@gmail.com",
-      roll: 3,
-    },
-  ]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [classDetails, setClassDetails] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [schoolId, setSchoolId] = useState<string | null>(null);
 
-  const handleAddStudent = (student) => {
-    setStudents((prev) => [...prev, student]);
+  // Fetch students when component mounts
+  useEffect(() => {
+    if (classId) {
+      fetchStudents();
+      fetchClassSchoolId();
+    }
+  }, [classId]);
+
+  // Fetch school_id from teacher's classes
+  const fetchClassSchoolId = async () => {
+    if (!classId || !userData?.id) return;
+    try {
+      const classes = await apiClient.getTeacherClasses(userData.id);
+      const matchingClass = Array.isArray(classes)
+        ? classes.find((c: any) => c.id === classId)
+        : null;
+      if (matchingClass?.school_id) {
+        setSchoolId(matchingClass.school_id);
+      }
+    } catch (err) {
+      console.error("Error fetching class details:", err);
+    }
+  };
+
+  // Update schoolId when students are loaded (fallback)
+  useEffect(() => {
+    if (!schoolId && students.length > 0 && students[0].school_id) {
+      setSchoolId(students[0].school_id);
+    }
+  }, [students, schoolId]);
+
+  // Fetch students for this class
+  const fetchStudents = async () => {
+    if (!classId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiClient.getClassStudents(classId);
+      setStudents(Array.isArray(response) ? response : []);
+    } catch (err: any) {
+      console.error("Error fetching class students:", err);
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to fetch students. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddStudent = async () => {
+    // Refresh students list after adding
+    if (classId) {
+      await fetchStudents();
+    }
+  };
+
+  // Format date of birth
+  const formatDateOfBirth = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   return (
@@ -75,41 +125,65 @@ export function TeacherClass() {
               <CardTitle className="text-lg font-semibold">
                 Students in this Class
               </CardTitle>
-              <AddStudentDialog onAddStudent={handleAddStudent} />
+              <AddStudentDialog
+                classId={classId || ""}
+                schoolId={schoolId || ""}
+                onAddStudent={handleAddStudent}
+              />
             </div>
           </CardHeader>
 
           <CardContent>
-            <div className="overflow-x-auto rounded-lg border">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr className="text-left">
-                    <th className="p-3 font-medium">Name</th>
-                    <th className="p-3 font-medium">Date of Birth</th>
-                    <th className="p-3 font-medium">Contact</th>
-                    <th className="p-3 font-medium">Email</th>
-                    <th className="p-3 font-medium">Roll No</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {students.map((student, index) => (
-                    <tr
-                      key={index}
-                      className="border-t hover:bg-muted/30 transition-colors"
-                    >
-                      <td className="p-3">{student.name}</td>
-                      <td className="p-3">{student.dob}</td>
-                      <td className="p-3">{student.contact}</td>
-                      <td className="p-3">{student.email}</td>
-                      <td className="p-3 text-muted-foreground">
-                        {student.roll}
-                      </td>
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <span className="ml-2 text-muted-foreground">
+                  Loading students...
+                </span>
+              </div>
+            ) : students.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No students found in this class
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr className="text-left">
+                      <th className="p-3 font-medium">Name</th>
+                      <th className="p-3 font-medium">Date of Birth</th>
+                      <th className="p-3 font-medium">Contact</th>
+                      <th className="p-3 font-medium">Email</th>
+                      <th className="p-3 font-medium">Roll No</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+
+                  <tbody>
+                    {students.map((student) => (
+                      <tr
+                        key={student.id}
+                        className="border-t hover:bg-muted/30 transition-colors"
+                      >
+                        <td className="p-3">{student.full_name || "N/A"}</td>
+                        <td className="p-3">
+                          {formatDateOfBirth(student.date_of_birth)}
+                        </td>
+                        <td className="p-3">{student.phone || "N/A"}</td>
+                        <td className="p-3">{student.email || "N/A"}</td>
+                        <td className="p-3 text-muted-foreground">
+                          {student.roll_number || "N/A"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -15,6 +15,7 @@ import {
   Search,
   Filter,
   BookOpen,
+  Loader2,
 } from "lucide-react";
 import {
   Select,
@@ -26,131 +27,85 @@ import {
 import { usePdf } from "../../contexts/PdfContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { PageHeader } from "../../components/PageHeader";
+import apiClient from "../../services/apiClient";
 
 export function ClassNotes() {
   const navigate = useNavigate();
   const { setPdf } = usePdf();
-  const { userRole } = useAuth();
+  const { userData } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("all");
 
-  // Mock class information
-  const classInfo = {
-    grade: "10",
-    section: "A",
-    classTeacher: "Dr. Rajesh Sharma",
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [totalMaterials, setTotalMaterials] = useState(0);
+  const [totalSubjects, setTotalSubjects] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (userData?.id) {
+      fetchClassMaterials();
+    }
+  }, [userData?.id]);
+
+  const fetchClassMaterials = async () => {
+    if (!userData?.id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiClient.getStudentClassMaterials(userData.id);
+      setMaterials(Array.isArray(response.materials) ? response.materials : []);
+      setTotalMaterials(response.total_materials || 0);
+      setTotalSubjects(response.total_subjects || 0);
+    } catch (err: any) {
+      console.error("Error fetching class materials:", err);
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to fetch class materials. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Mock uploaded notes by teachers
-  const classNotes = [
-    {
-      id: 1,
-      title: "Algebra - Chapter 5 Complete Notes",
-      subject: "Mathematics",
-      teacher: "Dr. Rajesh Sharma",
-      uploadDate: "Nov 20, 2025",
-      size: "2.4 MB",
-      type: "PDF",
-      downloads: 28,
-      fileUrl:
-        "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    },
-    {
-      id: 2,
-      title: "Linear Equations - Practice Problems",
-      subject: "Mathematics",
-      teacher: "Dr. Rajesh Sharma",
-      uploadDate: "Nov 18, 2025",
-      size: "1.8 MB",
-      type: "PDF",
-      downloads: 32,
-      fileUrl:
-        "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    },
-    {
-      id: 3,
-      title: "Laws of Motion - Detailed Explanation",
-      subject: "Physics",
-      teacher: "Prof. Priya Kumar",
-      uploadDate: "Nov 17, 2025",
-      size: "3.2 MB",
-      type: "PDF",
-      downloads: 30,
-      fileUrl:
-        "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    },
-    {
-      id: 4,
-      title: "Chemical Reactions - Lab Notes",
-      subject: "Chemistry",
-      teacher: "Ms. Anita Singh",
-      uploadDate: "Nov 15, 2025",
-      size: "2.1 MB",
-      type: "PDF",
-      downloads: 25,
-      fileUrl:
-        "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    },
-    {
-      id: 5,
-      title: "Cell Biology - Diagrams & Notes",
-      subject: "Biology",
-      teacher: "Mr. Vikram Patel",
-      uploadDate: "Nov 14, 2025",
-      size: "4.5 MB",
-      type: "PDF",
-      downloads: 27,
-      fileUrl:
-        "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    },
-    {
-      id: 6,
-      title: "Trigonometry Formulas - Quick Reference",
-      subject: "Mathematics",
-      teacher: "Dr. Rajesh Sharma",
-      uploadDate: "Nov 12, 2025",
-      size: "856 KB",
-      type: "PDF",
-      downloads: 35,
-      fileUrl:
-        "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    },
-    {
-      id: 7,
-      title: "Electricity & Circuits - Study Guide",
-      subject: "Physics",
-      teacher: "Prof. Priya Kumar",
-      uploadDate: "Nov 10, 2025",
-      size: "2.8 MB",
-      type: "PDF",
-      downloads: 29,
-      fileUrl:
-        "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    },
-    {
-      id: 8,
-      title: "Periodic Table - Complete Notes",
-      subject: "Chemistry",
-      teacher: "Ms. Anita Singh",
-      uploadDate: "Nov 8, 2025",
-      size: "1.5 MB",
-      type: "PDF",
-      downloads: 31,
-      fileUrl:
-        "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    },
+  // Get unique subjects from materials
+  const subjects = [
+    "all",
+    ...Array.from(
+      new Set(materials.map((m) => m.subject_name).filter(Boolean))
+    ),
   ];
 
-  const subjects = ["all", "Mathematics", "Physics", "Chemistry", "Biology"];
-
-  const filteredNotes = classNotes.filter((note) => {
+  const filteredNotes = materials.filter((note) => {
     const matchesSearch =
       note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.teacher.toLowerCase().includes(searchQuery.toLowerCase());
+      (note.subject_name &&
+        note.subject_name.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesSubject =
-      selectedSubject === "all" || note.subject === selectedSubject;
+      selectedSubject === "all" || note.subject_name === selectedSubject;
     return matchesSearch && matchesSubject;
   });
+
+  // Format file size
+  const formatFileSize = (bytes: number) => {
+    if (!bytes || bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   const subjectColors: Record<string, { bg: string; text: string }> = {
     Mathematics: { bg: "bg-blue-100", text: "text-blue-700" },
@@ -163,7 +118,7 @@ export function ClassNotes() {
     <div className="min-h-screen bg-paper">
       <PageHeader
         title="Class Notes & Materials"
-        subtitle={`Grade ${classInfo.grade} - Section ${classInfo.section} • Class Teacher: ${classInfo.classTeacher}`}
+        subtitle="Access all study materials uploaded by your teachers"
         showBackButton={true}
         backRoute="/student/dashboard"
       />
@@ -173,6 +128,11 @@ export function ClassNotes() {
         {/* Class Info Card */}
         <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white">
           <CardContent className="py-6">
+            {error && (
+              <div className="mb-4 p-3 bg-white/20 rounded-md border border-white/30">
+                <p className="text-sm text-white">{error}</p>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-white mb-2">Your Class</h3>
@@ -182,15 +142,15 @@ export function ClassNotes() {
                 <div className="flex gap-6 text-sm">
                   <div>
                     <p className="text-blue-100">Total Notes</p>
-                    <p className="text-2xl font-bold">{classNotes.length}</p>
+                    <p className="text-2xl font-bold">
+                      {loading ? "..." : totalMaterials}
+                    </p>
                   </div>
                   <div>
                     <p className="text-blue-100">Subjects</p>
-                    <p className="text-2xl font-bold">4</p>
-                  </div>
-                  <div>
-                    <p className="text-blue-100">Latest Update</p>
-                    <p className="text-2xl font-bold">Today</p>
+                    <p className="text-2xl font-bold">
+                      {loading ? "..." : totalSubjects}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -236,92 +196,123 @@ export function ClassNotes() {
         </Card>
 
         {/* Notes Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {filteredNotes.map((note) => {
-            const colors = subjectColors[note.subject] || {
-              bg: "bg-gray-100",
-              text: "text-gray-700",
-            };
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <span className="ml-2 text-muted-foreground">
+              Loading materials...
+            </span>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6">
+            {filteredNotes.map((note) => {
+              const subjectName = note.subject_name || "Unknown";
+              const colors = subjectColors[subjectName] || {
+                bg: "bg-gray-100",
+                text: "text-gray-700",
+              };
 
-            return (
-              <Card
-                key={note.id}
-                className="shadow-lg border-0 hover:shadow-xl transition-shadow"
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-10 h-10 ${colors.bg} rounded-lg flex items-center justify-center`}
-                      >
-                        <FileText className={`w-5 h-5 ${colors.text}`} />
-                      </div>
-                      <div>
-                        <span
-                          className={`text-xs px-2 py-1 ${colors.bg} ${colors.text} rounded-full font-medium`}
+              return (
+                <Card
+                  key={note.id}
+                  className="shadow-lg border-0 hover:shadow-xl transition-shadow"
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-10 h-10 ${colors.bg} rounded-lg flex items-center justify-center`}
                         >
-                          {note.subject}
+                          <FileText className={`w-5 h-5 ${colors.text}`} />
+                        </div>
+                        <div>
+                          <span
+                            className={`text-xs px-2 py-1 ${colors.bg} ${colors.text} rounded-full font-medium`}
+                          >
+                            {subjectName}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <CardTitle className="text-lg">{note.title}</CardTitle>
+                    {note.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {note.description}
+                      </p>
+                    )}
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      <div className="flex items-center justify-between">
+                        <span>Type:</span>
+                        <span className="font-medium text-foreground">
+                          {note.file_type || "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Date:</span>
+                        <span className="font-medium text-foreground">
+                          {formatDate(note.upload_date)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Size:</span>
+                        <span className="font-medium text-foreground">
+                          {formatFileSize(note.file_size)}
                         </span>
                       </div>
                     </div>
-                  </div>
-                  <CardTitle className="text-lg">{note.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center justify-between">
-                      <span>Uploaded by:</span>
-                      <span className="font-medium text-foreground">
-                        {note.teacher}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Date:</span>
-                      <span className="font-medium text-foreground">
-                        {note.uploadDate}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Size:</span>
-                      <span className="font-medium text-foreground">
-                        {note.size}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Downloads:</span>
-                      <span className="font-medium text-foreground">
-                        {note.downloads}
-                      </span>
-                    </div>
-                  </div>
 
-                  <div className="flex gap-2 pt-4 border-t">
-                    <Button variant="outline" className="flex-1 gap-2">
-                      <Eye className="w-4 h-4" />
-                      View
-                    </Button>
-                    <Button variant="outline" className="flex-1 gap-2">
-                      <Download className="w-4 h-4" />
-                      Download
-                    </Button>
-                    <Button
-                      className="flex-1 gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-                      onClick={() => {
-                        if (note.fileUrl) {
-                          setPdf(note.fileUrl, note.title);
-                          navigate("/student/ai-chat");
-                        }
-                      }}
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      Learn
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    <div className="flex gap-2 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        className="flex-1 gap-2"
+                        onClick={() => {
+                          if (note.file_url) {
+                            window.open(note.file_url, "_blank");
+                          }
+                        }}
+                      >
+                        <Eye className="w-4 h-4" />
+                        View
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 gap-2"
+                        onClick={() => {
+                          if (note.file_url) {
+                            const link = document.createElement("a");
+                            link.href = note.file_url;
+                            link.download = note.title || "download";
+                            link.target = "_blank";
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }
+                        }}
+                      >
+                        <Download className="w-4 h-4" />
+                        Download
+                      </Button>
+                      <Button
+                        className="flex-1 gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                        onClick={() => {
+                          if (note.file_url) {
+                            setPdf(note.file_url, note.title);
+                            navigate("/student/ai-chat");
+                          }
+                        }}
+                      >
+                        <BookOpen className="w-4 h-4" />
+                        Learn
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {filteredNotes.length === 0 && (
           <Card className="shadow-lg border-0">

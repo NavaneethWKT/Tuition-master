@@ -36,10 +36,7 @@ const loginSchema = z.object({
     .string()
     .min(1, "Contact number is required")
     .min(10, "Contact number must be at least 10 digits"),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(6, "Password must be at least 6 characters long"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;

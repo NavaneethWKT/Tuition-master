@@ -101,6 +101,93 @@ class TuitionMasterApiClient {
       data: data,
     });
   }
+
+  // create teacher
+  public async createTeacher(data: any): Promise<any> {
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/school-admin/teachers",
+      data: data,
+    });
+  }
+
+  // create class
+  public async createClass(data: any): Promise<any> {
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/school-admin/classes",
+      data: data,
+    });
+  }
+
+  // Teacher APIs
+  // get teacher classes
+  public async getTeacherClasses(teacherId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/teacher/${teacherId}/classes`,
+    });
+  }
+
+  // get teacher materials
+  public async getTeacherMaterials(teacherId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/teacher/${teacherId}/materials`,
+    });
+  }
+
+  // get teacher statistics
+  public async getTeacherStatistics(teacherId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/teacher/${teacherId}/statistics`,
+    });
+  }
+
+  // get class students
+  public async getClassStudents(classId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/teacher/classes/${classId}/students`,
+    });
+  }
+
+  // create student
+  public async createStudent(data: any): Promise<any> {
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/student/students",
+      data: data,
+    });
+  }
+
+  // create parent
+  public async createParent(data: any): Promise<any> {
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/parent/parents",
+      data: data,
+    });
+  }
+
+  // Parent APIs
+  // get parent student
+  public async getParentStudent(parentId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/parent/${parentId}/student`,
+    });
+  }
+
+  // Student APIs
+  // get student class materials
+  public async getStudentClassMaterials(studentId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/student/${studentId}/class-materials`,
+    });
+  }
 }
 
 const getEnvVar = (key: string, defaultValue: string): string => {
