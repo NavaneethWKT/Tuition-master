@@ -523,13 +523,13 @@ export function TeacherDashboard() {
                           <div className="space-y-2">
                             <Label htmlFor="subject-select">Subject *</Label>
                             <Select
-                              value={uploadForm.selectedSubject}
-                              onValueChange={(value) =>
-                                setUploadForm({
-                                  ...uploadForm,
+                              value={uploadForm.selectedSubject || undefined}
+                              onValueChange={(value) => {
+                                setUploadForm((prev) => ({
+                                  ...prev,
                                   selectedSubject: value,
-                                })
-                              }
+                                }));
+                              }}
                             >
                               <SelectTrigger id="subject-select">
                                 <SelectValue placeholder="Select a subject" />
@@ -547,7 +547,7 @@ export function TeacherDashboard() {
                                   subjects.map((subject: any) => (
                                     <SelectItem
                                       key={subject.subject_id}
-                                      value={subject.subject_id}
+                                      value={String(subject.subject_id)}
                                     >
                                       {subject.name}
                                     </SelectItem>
