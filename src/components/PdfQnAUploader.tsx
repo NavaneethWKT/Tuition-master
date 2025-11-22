@@ -150,9 +150,15 @@ export default function PdfQnAUploader({ role }: Props) {
       // Assuming response contains questions array or qna array
       const questions = response.questions || response.qna || [];
 
+      // Ensure each question has a unique ID
+      const questionsWithIds = questions.map((q: any, index: number) => ({
+        ...q,
+        id: q.id || `question-${index}-${Date.now()}-${Math.random()}`,
+      }));
+
       setUploadProgress(100);
       setTimeout(() => {
-        setQna(questions);
+        setQna(questionsWithIds);
         setLoading(false);
         setUploadProgress(0);
       }, 500);
@@ -426,13 +432,15 @@ export default function PdfQnAUploader({ role }: Props) {
           {/* Questions List */}
           <div className="space-y-4">
             {qna.map((q, index) => {
-              const isMarked = parentMarkings[q.id] !== null;
-              const isCorrect = parentMarkings[q.id] === "right";
-              const hasAnswer = studentAnswers[q.id]?.trim() !== "";
+              // Use a unique key combining id and index to ensure uniqueness
+              const uniqueKey = q.id || `q-${index}`;
+              const isMarked = parentMarkings[uniqueKey] !== null;
+              const isCorrect = parentMarkings[uniqueKey] === "right";
+              const hasAnswer = studentAnswers[uniqueKey]?.trim() !== "";
 
               return (
                 <Card
-                  key={q.id}
+                  key={uniqueKey}
                   className={`shadow-lg border-0 transition-all hover:shadow-xl ${
                     isParent && isMarked
                       ? isCorrect
@@ -469,46 +477,46 @@ export default function PdfQnAUploader({ role }: Props) {
                           <div className="flex gap-3">
                             <Button
                               variant={
-                                parentMarkings[q.id] === "right"
+                                parentMarkings[uniqueKey] === "right"
                                   ? "default"
                                   : "outline"
                               }
                               className={`flex-1 gap-2 ${
-                                parentMarkings[q.id] === "right"
+                                parentMarkings[uniqueKey] === "right"
                                   ? "bg-green-600 hover:bg-green-700 text-white border-green-600"
                                   : "hover:bg-green-50 hover:border-green-300"
                               }`}
-                              onClick={() =>
-                                setParentMarkings((m) => ({
-                                  ...m,
-                                  [q.id]: "right",
-                                }))
-                              }
+                              onClick={() => {
+                                setParentMarkings((prev) => ({
+                                  ...prev,
+                                  [uniqueKey]: "right",
+                                }));
+                              }}
                             >
-                              {parentMarkings[q.id] === "right" ? (
+                              {parentMarkings[uniqueKey] === "right" ? (
                                 <CheckCircle2 className="w-4 h-4" />
                               ) : null}
                               Correct
                             </Button>
                             <Button
                               variant={
-                                parentMarkings[q.id] === "wrong"
+                                parentMarkings[uniqueKey] === "wrong"
                                   ? "destructive"
                                   : "outline"
                               }
                               className={`flex-1 gap-2 ${
-                                parentMarkings[q.id] === "wrong"
+                                parentMarkings[uniqueKey] === "wrong"
                                   ? "bg-red-600 hover:bg-red-700"
                                   : "hover:bg-red-50 hover:border-red-300"
                               }`}
-                              onClick={() =>
-                                setParentMarkings((m) => ({
-                                  ...m,
-                                  [q.id]: "wrong",
-                                }))
-                              }
+                              onClick={() => {
+                                setParentMarkings((prev) => ({
+                                  ...prev,
+                                  [uniqueKey]: "wrong",
+                                }));
+                              }}
                             >
-                              {parentMarkings[q.id] === "wrong" ? (
+                              {parentMarkings[uniqueKey] === "wrong" ? (
                                 <XCircle className="w-4 h-4" />
                               ) : null}
                               Incorrect
@@ -519,11 +527,11 @@ export default function PdfQnAUploader({ role }: Props) {
                             <Textarea
                               placeholder="Type your answer here..."
                               className="min-h-[120px] text-base"
-                              value={studentAnswers[q.id] || ""}
+                              value={studentAnswers[uniqueKey] || ""}
                               onChange={(e) =>
-                                setStudentAnswers((a) => ({
-                                  ...a,
-                                  [q.id]: e.target.value,
+                                setStudentAnswers((prev) => ({
+                                  ...prev,
+                                  [uniqueKey]: e.target.value,
                                 }))
                               }
                             />
