@@ -20,12 +20,15 @@ import {
 import { GraduationCap, ArrowLeft, Building2 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSchool } from "../../contexts/SchoolContext";
+import apiClient from "../../services/apiClient";
 
 export function SchoolOnboarding() {
   const navigate = useNavigate();
   const { setUserRole } = useAuth();
   const { setSchoolData } = useSchool();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     // School Basic Information
     schoolName: "",
@@ -58,10 +61,46 @@ export function SchoolOnboarding() {
     setFormData({ ...formData, [field]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.password === formData.confirmPassword) {
-      // Save school data - only fields that exist in SchoolContext
+    setError(null);
+
+    // Validate password match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Construct address from city, state, pincode
+      const address = `${formData.city}, ${formData.state} ${formData.pincode}`;
+
+      // Map form data to API request body structure
+      const apiRequestBody = {
+        name: formData.schoolName,
+        address: address,
+        contact_phone: formData.phone,
+        contact_email: formData.email,
+        establishment_year: parseInt(formData.establishmentYear) || 0,
+        board_affiliation: formData.boardAffiliation.toUpperCase(),
+        city: formData.city,
+        state: formData.state,
+        pincode: formData.pincode,
+        principal_name: formData.principalName,
+        principal_email: formData.principalEmail,
+        principal_phone: formData.principalPhone,
+        admin_name: formData.adminName,
+        admin_email: formData.adminEmail,
+        admin_phone: formData.adminPhone,
+        password: formData.password,
+      };
+
+      // Call the API
+      const response = await apiClient.registerSchool(apiRequestBody);
+
+      // Save school data to context (for local state)
       const schoolDataToSave = {
         schoolName: formData.schoolName,
         establishmentYear: formData.establishmentYear,
@@ -79,9 +118,19 @@ export function SchoolOnboarding() {
         adminPhone: formData.adminPhone,
       };
       setSchoolData(schoolDataToSave);
+
       // After successful registration, log them in as admin
       setUserRole("admin");
       navigate("/admin/dashboard");
+    } catch (err: any) {
+      console.error("School registration error:", err);
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to register school. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -437,6 +486,11 @@ export function SchoolOnboarding() {
                         Passwords do not match
                       </p>
                     )}
+                  {error && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                      <p className="text-sm text-red-600">{error}</p>
+                    </div>
+                  )}
                   <div className="flex items-start gap-2 pt-4 border-t">
                     <input
                       type="checkbox"
@@ -470,8 +524,12 @@ export function SchoolOnboarding() {
                     Next
                   </Button>
                 ) : (
-                  <Button type="submit" className="whitespace-normal min-w-32">
-                    Complete Registration
+                  <Button
+                    type="submit"
+                    className="whitespace-normal min-w-32"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Registering..." : "Complete Registration"}
                   </Button>
                 )}
               </div>

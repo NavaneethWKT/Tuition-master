@@ -39,6 +39,15 @@ class TuitionMasterApiClient {
       data: data,
     });
   }
+
+  // register school
+  public async registerSchool(data: any): Promise<any> {
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/school-admin/schools",
+      data: data,
+    });
+  }
 }
 
 const getEnvVar = (key: string, defaultValue: string): string => {
@@ -55,7 +64,7 @@ const getEnvVar = (key: string, defaultValue: string): string => {
 
 const API_BASE_URL = getEnvVar(
   "VITE_API_BASE_URL",
-  "http://localhost:3000/api"
+  "http://localhost:8000/api"
 );
 
 export default new TuitionMasterApiClient(API_BASE_URL);
