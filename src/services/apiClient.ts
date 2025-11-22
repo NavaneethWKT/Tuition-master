@@ -70,6 +70,28 @@ class TuitionMasterApiClient {
       data: credentials,
     });
   }
+
+  // School Admin APIs
+  public async getSchoolDetails(schoolId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/school-admin/schools/${schoolId}`,
+    });
+  }
+
+  public async getSchoolClasses(schoolId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/school-admin/schools/${schoolId}/classes`,
+    });
+  }
+
+  public async getSchoolTeachers(schoolId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "get",
+      url: `/school-admin/schools/${schoolId}/teachers`,
+    });
+  }
 }
 
 const getEnvVar = (key: string, defaultValue: string): string => {
@@ -86,7 +108,7 @@ const getEnvVar = (key: string, defaultValue: string): string => {
 
 const API_BASE_URL = getEnvVar(
   "VITE_API_BASE_URL",
-  "https://semineutral-socialistic-yahaira.ngrok-free.dev/api"
+  "http://192.168.1.16:8000/api"
 );
 
 export default new TuitionMasterApiClient(API_BASE_URL);
