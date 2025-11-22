@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -13,20 +13,45 @@ import {
   BarChart3,
   TrendingUp,
   FlaskConical,
+  Loader2,
 } from "lucide-react";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { ActionCard } from "../../components/ActionCard";
 import { StatCard } from "../../components/StatCard";
+import { useAuth } from "../../contexts/AuthContext";
+import apiClient from "../../services/apiClient";
 
 export function ParentDashboard() {
   const navigate = useNavigate();
-  // Mock student data
-  const studentInfo = {
-    name: "Arjun Sharma",
-    grade: "10",
-    section: "A",
-    rollNumber: "25",
-    school: "Delhi Public School",
+  const { userData } = useAuth();
+
+  const [studentData, setStudentData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (userData?.id) {
+      fetchStudentDetails();
+    }
+  }, [userData?.id]);
+
+  const fetchStudentDetails = async () => {
+    if (!userData?.id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiClient.getParentStudent(userData.id);
+      setStudentData(response);
+    } catch (err: any) {
+      console.error("Error fetching student details:", err);
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to fetch student details. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const recentTestResults = [
@@ -77,26 +102,56 @@ export function ParentDashboard() {
         {/* Student Info Card */}
         <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <User className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-1">
-                    {studentInfo.name}
-                  </h2>
-                  <div className="flex gap-4 text-blue-100">
-                    <span>
-                      Grade {studentInfo.grade} - Section {studentInfo.section}
-                    </span>
-                    <span>•</span>
-                    <span>Roll No: {studentInfo.rollNumber}</span>
+            {error && (
+              <div className="mb-4 p-3 bg-white/20 rounded-md border border-white/30">
+                <p className="text-sm text-white">{error}</p>
+              </div>
+            )}
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-white" />
+                <span className="ml-2 text-white">
+                  Loading student details...
+                </span>
+              </div>
+            ) : studentData ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                    <User className="w-8 h-8 text-white" />
                   </div>
-                  <p className="text-blue-100 mt-1">{studentInfo.school}</p>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white mb-1">
+                      {studentData.full_name || "N/A"}
+                    </h2>
+                    <div className="flex gap-4 text-blue-100">
+                      <span>Roll No: {studentData.roll_number || "N/A"}</span>
+                      {studentData.email && (
+                        <>
+                          <span>•</span>
+                          <span>{studentData.email}</span>
+                        </>
+                      )}
+                    </div>
+                    {studentData.phone && (
+                      <p className="text-blue-100 mt-1">{studentData.phone}</p>
+                    )}
+                    {studentData.date_of_birth && (
+                      <p className="text-blue-100 mt-1 text-sm">
+                        Date of Birth:{" "}
+                        {new Date(
+                          studentData.date_of_birth
+                        ).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="text-center py-12 text-white">
+                No student information available
+              </div>
+            )}
           </CardContent>
         </Card>
 

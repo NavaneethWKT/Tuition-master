@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -23,40 +23,101 @@ import {
   Users,
   LogOut,
   PlusCircle,
+  Loader2,
 } from "lucide-react";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { StatCard } from "../../components/StatCard";
+import { useAuth } from "../../contexts/AuthContext";
+import apiClient from "../../services/apiClient";
 
 export function TeacherDashboard() {
+  const navigate = useNavigate();
+  const { userData } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
-  const [materials, setMaterials] = useState([
-    {
-      name: "Chapter 5 - Algebra Notes.pdf",
-      date: "Nov 20, 2025",
-      size: "2.4 MB",
-      url: "/materials/chapter5.pdf",
-    },
-    {
-      name: "Practice Problems Set 3.pdf",
-      date: "Nov 18, 2025",
-      size: "1.8 MB",
-      url: "/materials/chapter5.pdf",
-    },
-    {
-      name: "Trigonometry Formulas.pdf",
-      date: "Nov 15, 2025",
-      size: "856 KB",
-      url: "/materials/chapter5.pdf",
-    },
-  ]);
-  const handleViewMaterial = (url) => {
+
+  // State for API data
+  const [statistics, setStatistics] = useState<any>(null);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [loading, setLoading] = useState({
+    statistics: false,
+    classes: false,
+    materials: false,
+  });
+
+  // Get teacher ID from userData
+  const teacherId = userData?.id;
+
+  // Fetch statistics when component mounts
+  useEffect(() => {
+    if (teacherId) {
+      fetchStatistics();
+    }
+  }, [teacherId]);
+
+  // Fetch classes when overview tab is active
+  useEffect(() => {
+    if (teacherId && activeTab === "overview") {
+      fetchClasses();
+    }
+  }, [teacherId, activeTab]);
+
+  // Fetch materials when materials tab is active
+  useEffect(() => {
+    if (teacherId && activeTab === "materials") {
+      fetchMaterials();
+    }
+  }, [teacherId, activeTab]);
+
+  // Fetch teacher statistics
+  const fetchStatistics = async () => {
+    if (!teacherId) return;
+    setLoading((prev) => ({ ...prev, statistics: true }));
+    try {
+      const response = await apiClient.getTeacherStatistics(teacherId);
+      setStatistics(response);
+    } catch (error) {
+      console.error("Error fetching teacher statistics:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, statistics: false }));
+    }
+  };
+
+  // Fetch teacher classes
+  const fetchClasses = async () => {
+    if (!teacherId) return;
+    setLoading((prev) => ({ ...prev, classes: true }));
+    try {
+      const response = await apiClient.getTeacherClasses(teacherId);
+      setClasses(Array.isArray(response) ? response : []);
+    } catch (error) {
+      console.error("Error fetching teacher classes:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, classes: false }));
+    }
+  };
+
+  // Fetch teacher materials
+  const fetchMaterials = async () => {
+    if (!teacherId) return;
+    setLoading((prev) => ({ ...prev, materials: true }));
+    try {
+      const response = await apiClient.getTeacherMaterials(teacherId);
+      setMaterials(Array.isArray(response) ? response : []);
+    } catch (error) {
+      console.error("Error fetching teacher materials:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, materials: false }));
+    }
+  };
+
+  const handleViewMaterial = (url: string) => {
     window.open(url, "_blank");
   };
 
-  const handleDeleteMaterial = (index) => {
+  const handleDeleteMaterial = (index: number) => {
     setMaterials((prev) => prev.filter((_, i) => i !== index));
   };
-  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-paper">
       <DashboardHeader
@@ -73,7 +134,10 @@ export function TeacherDashboard() {
       <main className="container mx-auto px-6 py-8 space-y-6">
         {/* Greeting */}
         <div>
-          <h1 className="text-gray-800 mb-2">Welcome, Prof. Sharma 👨‍🏫</h1>
+          <h1 className="text-gray-800 mb-2">
+            Welcome, {userData?.name ? userData.name.split(" ")[0] : "Teacher"}{" "}
+            👨‍🏫
+          </h1>
           <p className="text-muted-foreground">
             Manage your classes, materials, and track student progress
           </p>
@@ -83,14 +147,22 @@ export function TeacherDashboard() {
         <div className="grid md:grid-cols-4 gap-6">
           <StatCard
             label="Total Students"
-            value={156}
+            value={
+              loading.statistics
+                ? "..."
+                : statistics?.total_students?.toLocaleString() || "0"
+            }
             icon={Users}
             iconBg="bg-blue-100"
             iconColor="text-blue-600"
           />
           <StatCard
             label="Total Classes"
-            value={8}
+            value={
+              loading.statistics
+                ? "..."
+                : statistics?.total_classes?.toLocaleString() || "0"
+            }
             icon={BookOpen}
             iconBg="bg-green-100"
             iconColor="text-green-600"
@@ -117,46 +189,44 @@ export function TeacherDashboard() {
                   <CardTitle>Your Classes</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {[
-                      {
-                        name: "Grade 10 - Section A",
-                        subject: "Mathematics",
-                        students: 35,
-                      },
-                      {
-                        name: "Grade 10 - Section B",
-                        subject: "Mathematics",
-                        students: 32,
-                      },
-                      {
-                        name: "Grade 9 - Section A",
-                        subject: "Mathematics",
-                        students: 38,
-                      },
-                    ].map((classItem, index) => (
-                      <div
-                        key={index}
-                        className="p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{classItem.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {classItem.subject} • {classItem.students}{" "}
-                              students
-                            </p>
+                  {loading.classes ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span className="ml-2 text-muted-foreground">
+                        Loading classes...
+                      </span>
+                    </div>
+                  ) : classes.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      No classes found
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {classes.map((classItem) => (
+                        <div
+                          key={classItem.id}
+                          className="p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">
+                                Grade {classItem.grade} - Section{" "}
+                                {classItem.section}
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                navigate(`/teacher/class/${classItem.id}`)
+                              }
+                            >
+                              View
+                            </Button>
                           </div>
-                          <Button
-                            size="sm"
-                            onClick={() => navigate(`/teacher/class`)}
-                          >
-                            View
-                          </Button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -195,43 +265,95 @@ export function TeacherDashboard() {
                   {/* Uploaded Materials List */}
                   <div className="space-y-3 mt-6">
                     <h4 className="font-medium">Uploaded Materials</h4>
-                    {materials.map((material, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                            <FileText className="w-5 h-5 text-red-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium">{material.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {material.date} • {material.size}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewMaterial(material.url)}
-                          >
-                            View
-                          </Button>
-
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteMaterial(index)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                    {loading.materials ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        <span className="ml-2 text-muted-foreground">
+                          Loading materials...
+                        </span>
                       </div>
-                    ))}
+                    ) : materials.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        No materials found
+                      </div>
+                    ) : (
+                      materials.map((material, index) => {
+                        // Format file size
+                        const formatFileSize = (bytes: number) => {
+                          if (!bytes) return "Unknown size";
+                          const mb = bytes / (1024 * 1024);
+                          if (mb >= 1) return `${mb.toFixed(2)} MB`;
+                          const kb = bytes / 1024;
+                          return `${kb.toFixed(2)} KB`;
+                        };
+
+                        // Format date
+                        const formatDate = (dateString: string) => {
+                          if (!dateString) return "Unknown date";
+                          const date = new Date(dateString);
+                          return date.toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          });
+                        };
+
+                        return (
+                          <div
+                            key={material.id || index}
+                            className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-red-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium">
+                                  {material.title || "Untitled Material"}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatDate(
+                                    material.upload_date || material.created_at
+                                  )}{" "}
+                                  • {formatFileSize(material.file_size)}
+                                  {material.file_type
+                                    ? ` • ${material.file_type}`
+                                    : ""}
+                                </p>
+                                {material.description && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {material.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-2">
+                              {material.file_url && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleViewMaterial(material.file_url)
+                                  }
+                                >
+                                  View
+                                </Button>
+                              )}
+
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteMaterial(index)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </CardContent>

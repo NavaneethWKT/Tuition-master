@@ -72,8 +72,26 @@ export function SchoolAdminDashboard() {
     classTeacherId: "",
   });
 
-  // Get school ID from userData
-  const schoolId = userData?.id;
+  // State for create teacher form
+  const [newTeacherForm, setNewTeacherForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    password: "",
+    subjects: "",
+    qualification: "",
+    experience_years: "",
+    joining_date: "",
+  });
+
+  // Loading states for form submissions
+  const [submitting, setSubmitting] = useState({
+    teacher: false,
+    class: false,
+  });
+
+  // Get school ID - prefer schoolDetails.id, fallback to userData.id
+  const schoolId = schoolDetails?.id || userData?.id;
 
   // Fetch school details when component mounts (overview tab)
   useEffect(() => {
@@ -134,6 +152,127 @@ export function SchoolAdminDashboard() {
       console.error("Error fetching teachers:", error);
     } finally {
       setLoading((prev) => ({ ...prev, teachers: false }));
+    }
+  };
+
+  // Handle create teacher
+  const handleCreateTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const currentSchoolId = schoolDetails?.id || userData?.id;
+
+    if (!currentSchoolId) {
+      console.error(
+        "School ID not found. userData:",
+        userData,
+        "schoolDetails:",
+        schoolDetails
+      );
+      alert(
+        "School ID not found. Please ensure you're logged in and try refreshing the page."
+      );
+      return;
+    }
+
+    setSubmitting((prev) => ({ ...prev, teacher: true }));
+    try {
+      // Convert subjects string to array (comma-separated)
+      const subjectsArray = newTeacherForm.subjects
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      const requestBody = {
+        school_id: currentSchoolId,
+        full_name: newTeacherForm.full_name,
+        email: newTeacherForm.email,
+        phone: newTeacherForm.phone,
+        password: newTeacherForm.password,
+        subjects: subjectsArray,
+        qualification: newTeacherForm.qualification,
+        experience_years: parseInt(newTeacherForm.experience_years) || 0,
+        joining_date:
+          newTeacherForm.joining_date || new Date().toISOString().split("T")[0],
+      };
+
+      await apiClient.createTeacher(requestBody);
+
+      // Reset form
+      setNewTeacherForm({
+        full_name: "",
+        email: "",
+        phone: "",
+        password: "",
+        subjects: "",
+        qualification: "",
+        experience_years: "",
+        joining_date: "",
+      });
+
+      // Refresh teachers list and school details
+      await Promise.all([fetchTeachers(), fetchSchoolDetails()]);
+
+      alert("Teacher created successfully!");
+    } catch (error: any) {
+      console.error("Error creating teacher:", error);
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to create teacher. Please try again."
+      );
+    } finally {
+      setSubmitting((prev) => ({ ...prev, teacher: false }));
+    }
+  };
+
+  // Handle create class
+  const handleCreateClass = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const currentSchoolId = schoolDetails?.id || userData?.id;
+
+    if (!currentSchoolId) {
+      console.error(
+        "School ID not found. userData:",
+        userData,
+        "schoolDetails:",
+        schoolDetails
+      );
+      alert(
+        "School ID not found. Please ensure you're logged in and try refreshing the page."
+      );
+      return;
+    }
+
+    setSubmitting((prev) => ({ ...prev, class: true }));
+    try {
+      const requestBody = {
+        school_id: currentSchoolId,
+        grade: parseInt(newClassForm.grade) || 0,
+        section: newClassForm.section,
+        class_teacher_id: newClassForm.classTeacherId || "",
+      };
+
+      await apiClient.createClass(requestBody);
+
+      // Reset form
+      setNewClassForm({
+        grade: "",
+        section: "",
+        classTeacherId: "",
+      });
+
+      // Refresh classes list and school details
+      await Promise.all([fetchClasses(), fetchSchoolDetails()]);
+
+      alert("Class created successfully!");
+    } catch (error: any) {
+      console.error("Error creating class:", error);
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to create class. Please try again."
+      );
+    } finally {
+      setSubmitting((prev) => ({ ...prev, class: false }));
     }
   };
 
@@ -465,36 +604,135 @@ export function SchoolAdminDashboard() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Add Teacher Form */}
-                <div className="p-6 border-2 border-border rounded-xl space-y-4">
-                  <h4 className="font-medium">Add New Teacher</h4>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Full Name</Label>
-                      <Input placeholder="Enter teacher name" />
+                <form onSubmit={handleCreateTeacher}>
+                  <div className="p-6 border-2 border-border rounded-xl space-y-4">
+                    <h4 className="font-medium">Add New Teacher</h4>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Full Name *</Label>
+                        <Input
+                          placeholder="Enter teacher name"
+                          value={newTeacherForm.full_name}
+                          onChange={(e) =>
+                            setNewTeacherForm({
+                              ...newTeacherForm,
+                              full_name: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Email *</Label>
+                        <Input
+                          type="email"
+                          placeholder="teacher@school.edu"
+                          value={newTeacherForm.email}
+                          onChange={(e) =>
+                            setNewTeacherForm({
+                              ...newTeacherForm,
+                              email: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Phone Number *</Label>
+                        <Input
+                          type="tel"
+                          placeholder="+91 98765 43210"
+                          value={newTeacherForm.phone}
+                          onChange={(e) =>
+                            setNewTeacherForm({
+                              ...newTeacherForm,
+                              phone: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Password *</Label>
+                        <Input
+                          type="password"
+                          placeholder="Enter password"
+                          value={newTeacherForm.password}
+                          onChange={(e) =>
+                            setNewTeacherForm({
+                              ...newTeacherForm,
+                              password: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Subjects (comma-separated) *</Label>
+                        <Input
+                          placeholder="Mathematics, Physics"
+                          value={newTeacherForm.subjects}
+                          onChange={(e) =>
+                            setNewTeacherForm({
+                              ...newTeacherForm,
+                              subjects: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Qualification *</Label>
+                        <Input
+                          placeholder="M.Sc., B.Ed"
+                          value={newTeacherForm.qualification}
+                          onChange={(e) =>
+                            setNewTeacherForm({
+                              ...newTeacherForm,
+                              qualification: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Experience (years) *</Label>
+                        <Input
+                          type="number"
+                          placeholder="5"
+                          value={newTeacherForm.experience_years}
+                          onChange={(e) =>
+                            setNewTeacherForm({
+                              ...newTeacherForm,
+                              experience_years: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Joining Date</Label>
+                        <Input
+                          type="date"
+                          value={newTeacherForm.joining_date}
+                          onChange={(e) =>
+                            setNewTeacherForm({
+                              ...newTeacherForm,
+                              joining_date: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Email</Label>
-                      <Input type="email" placeholder="teacher@school.edu" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Phone Number</Label>
-                      <Input type="tel" placeholder="+91 98765 43210" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Subject</Label>
-                      <Input placeholder="Mathematics" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Qualification</Label>
-                      <Input placeholder="M.Sc., B.Ed" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Experience (years)</Label>
-                      <Input type="number" placeholder="5" />
-                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={submitting.teacher}
+                    >
+                      {submitting.teacher ? "Adding Teacher..." : "Add Teacher"}
+                    </Button>
                   </div>
-                  <Button className="w-full">Add Teacher</Button>
-                </div>
+                </form>
 
                 {/* Teachers List */}
                 <div>
@@ -561,77 +799,89 @@ export function SchoolAdminDashboard() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Add Class Form */}
-                <div className="p-6 border-2 border-border rounded-xl space-y-4">
-                  <h4 className="font-medium">Create New Class</h4>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Grade</Label>
-                      <Input
-                        placeholder="e.g., 10"
-                        type="number"
-                        value={newClassForm.grade}
-                        onChange={(e) =>
-                          setNewClassForm({
-                            ...newClassForm,
-                            grade: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Section</Label>
-                      <Input
-                        placeholder="e.g., A"
-                        value={newClassForm.section}
-                        onChange={(e) =>
-                          setNewClassForm({
-                            ...newClassForm,
-                            section: e.target.value.toUpperCase(),
-                          })
-                        }
-                        maxLength={1}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Class Teacher</Label>
-                      <Select
-                        value={newClassForm.classTeacherId || "none"}
-                        onValueChange={(value) =>
-                          setNewClassForm({
-                            ...newClassForm,
-                            classTeacherId: value === "none" ? "" : value,
-                          })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select teacher (optional)" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Select</SelectItem>
-                          {loading.teachers ? (
-                            <SelectItem value="loading" disabled>
-                              Loading teachers...
-                            </SelectItem>
-                          ) : teachers.length === 0 ? (
-                            <SelectItem value="no-teachers" disabled>
-                              No teachers available
-                            </SelectItem>
-                          ) : (
-                            teachers.map((teacher) => (
-                              <SelectItem key={teacher.id} value={teacher.id}>
-                                {teacher.name ||
-                                  teacher.full_name ||
-                                  `Teacher ${teacher.id.substring(0, 8)}`}
-                                {teacher.subject ? ` - ${teacher.subject}` : ""}
+                <form onSubmit={handleCreateClass}>
+                  <div className="p-6 border-2 border-border rounded-xl space-y-4">
+                    <h4 className="font-medium">Create New Class</h4>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Grade *</Label>
+                        <Input
+                          placeholder="e.g., 10"
+                          type="number"
+                          value={newClassForm.grade}
+                          onChange={(e) =>
+                            setNewClassForm({
+                              ...newClassForm,
+                              grade: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Section *</Label>
+                        <Input
+                          placeholder="e.g., A"
+                          value={newClassForm.section}
+                          onChange={(e) =>
+                            setNewClassForm({
+                              ...newClassForm,
+                              section: e.target.value.toUpperCase(),
+                            })
+                          }
+                          maxLength={1}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Class Teacher</Label>
+                        <Select
+                          value={newClassForm.classTeacherId || "none"}
+                          onValueChange={(value) =>
+                            setNewClassForm({
+                              ...newClassForm,
+                              classTeacherId: value === "none" ? "" : value,
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select teacher (optional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Select</SelectItem>
+                            {loading.teachers ? (
+                              <SelectItem value="loading" disabled>
+                                Loading teachers...
                               </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
+                            ) : teachers.length === 0 ? (
+                              <SelectItem value="no-teachers" disabled>
+                                No teachers available
+                              </SelectItem>
+                            ) : (
+                              teachers.map((teacher) => (
+                                <SelectItem key={teacher.id} value={teacher.id}>
+                                  {teacher.name ||
+                                    teacher.full_name ||
+                                    `Teacher ${teacher.id.substring(0, 8)}`}
+                                  {teacher.subject
+                                    ? ` - ${teacher.subject}`
+                                    : ""}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={submitting.class}
+                    >
+                      {submitting.class ? "Creating Class..." : "Create Class"}
+                    </Button>
                   </div>
-                  <Button className="w-full">Create Class</Button>
-                </div>
+                </form>
 
                 {/* Classes Grid */}
                 <div>

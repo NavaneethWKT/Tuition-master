@@ -116,7 +116,7 @@ export default function App() {
                 }
               />
               <Route
-                path="/teacher/class"
+                path="/teacher/class/:id"
                 element={
                   <ProtectedRoute allowedRoles={["teacher"]}>
                     <TeacherClass />
