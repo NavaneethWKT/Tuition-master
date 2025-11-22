@@ -58,7 +58,7 @@ export function TeacherDashboard() {
   };
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-paper">
       <DashboardHeader
         title="Tuition Master"
         subtitle="Teacher Portal"
@@ -168,10 +168,6 @@ export function TeacherDashboard() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Study Materials</CardTitle>
-                  <Button className="gap-2">
-                    <PlusCircle className="w-4 h-4" />
-                    Upload Material
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -192,7 +188,6 @@ export function TeacherDashboard() {
                       </div>
                       <div className="flex gap-3">
                         <Button variant="outline">Browse Files</Button>
-                        <Button>Upload from URL</Button>
                       </div>
                     </div>
                   </div>

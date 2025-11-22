@@ -121,7 +121,7 @@ export function ParentDashboard() {
                 <p className="text-muted-foreground mb-4">
                   Review your child's mock test answers and provide feedback
                 </p>
-                <Button className="w-full">View Mock Tests</Button>
+                <Button className="w-full">Generate</Button>
               </CardContent>
             </Card>
 
