@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -12,15 +12,12 @@ import {
   SelectValue,
 } from "./ui/select";
 import {
-  Upload,
   FileText,
   CheckCircle2,
   XCircle,
   Sparkles,
   Loader2,
-  FileCheck,
   Award,
-  Clock,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import apiClient from "../services/apiClient";
@@ -46,7 +43,6 @@ export default function PdfQnAUploader({ role }: Props) {
   const [loadingMaterials, setLoadingMaterials] = useState(false);
   const [materialsError, setMaterialsError] = useState<string | null>(null);
   const [studentId, setStudentId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [studentAnswers, setStudentAnswers] = useState<{
     [qId: string]: string;
   }>({});
@@ -83,7 +79,9 @@ export default function PdfQnAUploader({ role }: Props) {
       }
     } catch (err: any) {
       console.error("Error fetching parent's student:", err);
-      setMaterialsError("Failed to fetch student information. Please try again.");
+      setMaterialsError(
+        "Failed to fetch student information. Please try again."
+      );
     }
   };
 
@@ -144,33 +142,27 @@ export default function PdfQnAUploader({ role }: Props) {
     }, 200);
 
     try {
-      // TODO: Replace with actual API call to generate questions from material
-      // For now, using mock data
-      const response = await fetch("/api/pdf-qna", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          material_id: selectedMaterialId,
-        }),
-      });
+      const response = await apiClient.generateExamQuestions(
+        selectedMaterialId
+      );
 
-      if (response.ok) {
-        const data = await response.json();
-        setUploadProgress(100);
-        setTimeout(() => {
-          setQna(data.qna || []);
-          setLoading(false);
-          setUploadProgress(0);
-        }, 500);
-      } else {
-        alert("Failed to generate questions. Please try again.");
+      // Handle response - adjust based on actual API response structure
+      // Assuming response contains questions array or qna array
+      const questions = response.questions || response.qna || [];
+
+      setUploadProgress(100);
+      setTimeout(() => {
+        setQna(questions);
         setLoading(false);
         setUploadProgress(0);
-      }
-    } catch (error) {
-      alert("An error occurred. Please try again.");
+      }, 500);
+    } catch (error: any) {
+      console.error("Error generating questions:", error);
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to generate questions. Please try again."
+      );
       setLoading(false);
       setUploadProgress(0);
     }
@@ -229,9 +221,7 @@ export default function PdfQnAUploader({ role }: Props) {
               )}
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Select Material *
-                </Label>
+                <Label className="text-sm font-medium">Select Material *</Label>
                 <Select
                   value={selectedMaterialId}
                   onValueChange={handleMaterialSelect}
@@ -320,7 +310,9 @@ export default function PdfQnAUploader({ role }: Props) {
                       {selectedMaterial.file_type &&
                         selectedMaterial.file_size && <span>•</span>}
                       {selectedMaterial.file_size && (
-                        <span>{formatFileSize(selectedMaterial.file_size)}</span>
+                        <span>
+                          {formatFileSize(selectedMaterial.file_size)}
+                        </span>
                       )}
                     </div>
                   </div>

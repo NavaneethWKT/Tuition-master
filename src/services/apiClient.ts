@@ -241,6 +241,18 @@ class TuitionMasterApiClient {
       url: `/documents/url?public_id=${publicId}`,
     });
   }
+
+  // generate exam questions
+  public async generateExamQuestions(studyMaterialId: string): Promise<any> {
+    return this.makeRequest<any>({
+      method: "post",
+      url: "/exam/questions",
+      data: {
+        study_material_id: studyMaterialId,
+        num_questions: 10,
+      },
+    });
+  }
 }
 
 const getEnvVar = (key: string, defaultValue: string): string => {
