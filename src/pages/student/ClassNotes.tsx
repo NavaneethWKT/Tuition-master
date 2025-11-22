@@ -235,30 +235,28 @@ export function ClassNotes() {
                       </div>
                     </div>
                     <CardTitle className="text-lg">{note.title}</CardTitle>
-                    {note.description && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {note.description}
-                      </p>
-                    )}
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {note.description || "Description unavailable"}
+                    </p>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2 text-sm text-muted-foreground">
                       <div className="flex items-center justify-between">
                         <span>Type:</span>
                         <span className="font-medium text-foreground">
-                          {note.file_type || "N/A"}
+                          {note.file_type || "NA"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Date:</span>
                         <span className="font-medium text-foreground">
-                          {formatDate(note.upload_date)}
+                          {formatDate(note.upload_date) || "NA"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Size:</span>
                         <span className="font-medium text-foreground">
-                          {formatFileSize(note.file_size)}
+                          {formatFileSize(note.file_size) || "NA"}
                         </span>
                       </div>
                     </div>
@@ -314,7 +312,7 @@ export function ClassNotes() {
           </div>
         )}
 
-        {filteredNotes.length === 0 && (
+        {!loading && filteredNotes.length === 0 && (
           <Card className="shadow-lg border-0">
             <CardContent className="py-12">
               <div className="text-center space-y-3">
