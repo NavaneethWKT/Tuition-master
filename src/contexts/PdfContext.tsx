@@ -3,7 +3,8 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 interface PdfContextType {
   selectedPdfUrl: string | undefined;
   selectedPdfTitle: string | undefined;
-  setPdf: (url: string, title: string) => void;
+  selectedPdfMaterialId: string | undefined;
+  setPdf: (url: string, title: string, materialId?: string) => void;
   clearPdf: () => void;
 }
 
@@ -14,20 +15,31 @@ export function PdfProvider({ children }: { children?: ReactNode }) {
   const [selectedPdfTitle, setSelectedPdfTitle] = useState<
     string | undefined
   >();
+  const [selectedPdfMaterialId, setSelectedPdfMaterialId] = useState<
+    string | undefined
+  >();
 
-  const setPdf = (url: string, title: string) => {
+  const setPdf = (url: string, title: string, materialId?: string) => {
     setSelectedPdfUrl(url);
     setSelectedPdfTitle(title);
+    setSelectedPdfMaterialId(materialId);
   };
 
   const clearPdf = () => {
     setSelectedPdfUrl(undefined);
     setSelectedPdfTitle(undefined);
+    setSelectedPdfMaterialId(undefined);
   };
 
   return (
     <PdfContext.Provider
-      value={{ selectedPdfUrl, selectedPdfTitle, setPdf, clearPdf }}
+      value={{
+        selectedPdfUrl,
+        selectedPdfTitle,
+        selectedPdfMaterialId,
+        setPdf,
+        clearPdf,
+      }}
     >
       {children}
     </PdfContext.Provider>

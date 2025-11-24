@@ -338,7 +338,7 @@ export function ClassNotes() {
                         className="flex-1 gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
                         onClick={() => {
                           if (note.file_url) {
-                            setPdf(note.file_url, note.title);
+                            setPdf(note.file_url, note.title, note.id);
                             navigate("/student/ai-chat");
                           }
                         }}

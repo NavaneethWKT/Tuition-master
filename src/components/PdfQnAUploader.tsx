@@ -687,26 +687,35 @@ export default function PdfQnAUploader({ role }: Props) {
             <DialogTitle>Test Evaluation</DialogTitle>
           </DialogHeader>
           <div className="py-6">
-            {evaluationResult.loading ? (
+            {evaluationResult.score !== null && (
               <div className="flex flex-col items-center justify-center space-y-4">
-                <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                <p className="text-muted-foreground">
-                  Evaluating your answers...
-                </p>
-              </div>
-            ) : evaluationResult.score !== null ? (
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                <div
+                  className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                    evaluationResult.score >= 5
+                      ? "bg-gradient-to-br from-green-500 to-emerald-500"
+                      : "bg-gradient-to-br from-red-500 to-rose-500"
+                  }`}
+                >
                   <Award className="w-10 h-10 text-white" />
                 </div>
+
                 <div className="text-center">
                   <p className="text-4xl font-bold text-gray-800 mb-2">
                     {evaluationResult.score}/10
                   </p>
-                  <p className="text-muted-foreground">
-                    Great job! Keep up the good work.
-                  </p>
+
+                  {evaluationResult.score >= 5 ? (
+                    <p className="text-green-700 font-medium">
+                      Great job! You’re improving well — keep it up! 🎉
+                    </p>
+                  ) : (
+                    <p className="text-red-600 font-medium">
+                      Don’t worry, keep practicing! 💪 Review your weak areas
+                      and try again.
+                    </p>
+                  )}
                 </div>
+
                 <Button
                   onClick={() => {
                     setEvaluationResult({
@@ -720,7 +729,7 @@ export default function PdfQnAUploader({ role }: Props) {
                   Close
                 </Button>
               </div>
-            ) : null}
+            )}
           </div>
         </DialogContent>
       </Dialog>

@@ -20,11 +20,15 @@ interface Message {
 
 export function AITutorChat() {
   const navigate = useNavigate();
-  const { selectedPdfUrl: pdfUrl, selectedPdfTitle: pdfTitle } = usePdf();
-  const { userRole } = useAuth();
+  const {
+    selectedPdfUrl: pdfUrl,
+    selectedPdfTitle: pdfTitle,
+    selectedPdfMaterialId: materialId,
+  } = usePdf();
+  const { userRole, userData } = useAuth();
 
   // WebSocket configuration
-  const getWebSocketUrl = () => {
+  const getWebSocketBaseUrl = () => {
     try {
       const env = (import.meta as any).env;
       if (env && env.VITE_WS_BASE_URL) {
@@ -35,8 +39,7 @@ export function AITutorChat() {
     }
     return "wss://nonzealous-vectorially-adolfo.ngrok-free.dev/ws/";
   };
-  const WS_URL = getWebSocketUrl();
-  const clientId = useRef(`client_${Math.random().toString(36).substr(2, 9)}`);
+  const WS_BASE_URL = getWebSocketBaseUrl();
 
   // State
   const [messages, setMessages] = useState<Message[]>([
@@ -66,8 +69,15 @@ export function AITutorChat() {
 
   // WebSocket connection
   useEffect(() => {
+    // Only connect if we have a valid material ID
+    if (!materialId) {
+      console.log("Waiting for material ID...");
+      return;
+    }
+
     const connect = () => {
-      const wsUrl = WS_URL + clientId.current;
+      // Use material ID for WebSocket connection
+      const wsUrl = `${WS_BASE_URL}${materialId}`;
       console.log("Connecting to:", wsUrl);
 
       const ws = new WebSocket(wsUrl);
@@ -98,8 +108,10 @@ export function AITutorChat() {
         setIsConnected(false);
         addSystemMessage("Disconnected from server");
 
-        // Attempt to reconnect after 3 seconds
-        setTimeout(connect, 3000);
+        // Attempt to reconnect after 3 seconds (only if we still have material ID)
+        if (materialId) {
+          setTimeout(connect, 3000);
+        }
       };
     };
 
@@ -112,7 +124,7 @@ export function AITutorChat() {
       }
       cancelAllAudio();
     };
-  }, []);
+  }, [materialId, WS_BASE_URL]);
 
   useEffect(() => {
     localStorage.setItem("chatVisible", JSON.stringify(isChatAreaVisible));
